@@ -2,3 +2,9 @@ mentocyber-site.tar.gz
 node_modules/
 .next/
 *.tsbuildinfo
+.env
+.env.local
+.env.*.local
+firestore-debug.log
+ui-debug.log
+.firebase/
