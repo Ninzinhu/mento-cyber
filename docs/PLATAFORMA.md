@@ -1,49 +1,51 @@
-# MentoCyber — estrutura da plataforma
+# MentoCyber — estrutura da comunidade
 
 ## Proposta
 
-MentoCyber é uma plataforma de formação prática em cibersegurança para pessoas que querem sair do estudo passivo e demonstrar habilidade em cenários reais. A experiência combina conteúdos gratuitos para aquisição, trilhas premium para progressão e prática guiada em laboratórios e simulações.
+MentoCyber é uma comunidade de prática em cibersegurança. Ela reúne pessoas que querem
+observar cenários, compartilhar hipóteses, revisar evidências e construir memória coletiva
+para defesa digital responsável. O produto não vende cursos nem posiciona participantes como
+alunos; materiais e missões existem para tornar a troca mais qualificada.
 
 ## Pilares de produto
 
-| Camada | Objetivo | Conteúdo inicial |
+| Camada | Objetivo | Primeira versão |
 | --- | --- | --- |
-| Descoberta gratuita | Mostrar valor e captar o lead | Guia de carreira, fundamentos Linux, quiz de perfil e roadmap de entrada |
-| Academia premium | Conduzir uma jornada mensurável | Trilhas Blue Team, Red Team, Cloud e GRC, mentorias e certificados |
-| Prática | Transformar teoria em evidência | Labs guiados, CTFs, investigação de incidentes e relatórios |
-| Comunidade | Aumentar retenção | Comunidade, eventos ao vivo, desafios e feedback de mentores |
+| Base aberta | Dar contexto para qualquer pessoa chegar à conversa | Referências, glossário, checklists e casos anotados |
+| Missões | Criar um foco compartilhado de prática | Cenários, pistas, perguntas e registros curtos |
+| Rede | Manter a troca humana recorrente | Encontros, revisão entre pares e memória de decisões |
+| Sustentação | Financiar a operação sem virar vitrine de curso | Apoio voluntário, patrocínio ético e ofertas para organizações |
 
-## Stack recomendada para a versão de produção
+## Objetos essenciais
 
-- **Web:** Next.js + TypeScript + Tailwind CSS + shadcn/ui.
-- **Backend:** Next.js Route Handlers em Cloudflare Workers ou Vercel Functions.
-- **Dados:** PostgreSQL (Neon/Supabase) + Prisma/Drizzle.
-- **Identidade:** Clerk ou Supabase Auth, com login social e controle de papéis (aluno, mentor, admin).
-- **Vídeo e arquivos:** Cloudflare R2 para materiais; Mux ou Vimeo para vídeo protegido.
-- **Labs:** máquinas efêmeras isoladas em CTFd + Docker/Kubernetes, com VPN/browser-based access e encerramento automático.
+- Pessoa, perfil, interesses e consentimentos
+- Frente de prática, missão, pista e contexto
+- Hipótese, evidência, comentário e revisão entre pares
+- Encontro, inscrição, pauta e memória coletiva
+- Recurso aberto, anotação e versão
+- Organização apoiadora, contribuição e transparência financeira
+
+## Stack para a primeira versão
+
+- **Web:** Next.js, TypeScript, Motion, Lenis e uma camada WebGL opcional com React Three Fiber.
+- **Dados:** Cloud Firestore como banco único do MVP, com regras e índices versionados.
+- **Identidade:** Firebase Authentication com e-mail/senha e perfis simples; login social pode entrar depois.
+- **Discussões:** inicialmente links para Discord/Matrix; depois tópicos e revisões no próprio produto.
+- **Arquivos:** Cloudflare R2 para referências públicas e anexos moderados.
 - **Observabilidade:** Sentry, PostHog e logs estruturados.
-- **E-mail/CRM:** Resend + Brevo/HubSpot para onboarding e recuperação de checkout.
+- **E-mail:** Resend para avisos de encontros, missões e retorno de revisão.
 
-## Pagamentos
+## Sustentação financeira
 
-Para o Brasil, integrar **Mercado Pago** (Pix, cartão e boleto) como principal meio de pagamento. Manter **Stripe** para cartões internacionais e assinaturas globais. Ambos devem usar webhooks assinados; a liberação de acesso ocorre somente após confirmação server-to-server do pagamento.
+Se houver cobrança, ela deve financiar encontros, infraestrutura e moderação — não bloquear
+o conhecimento básico nem simular uma matrícula. Para o Brasil, Mercado Pago pode receber
+Pix e cartão; Stripe permanece uma opção para apoio internacional. Qualquer integração usa
+webhooks assinados e deixa claros benefício, valor e destino da contribuição.
 
-Modelos sugeridos: curso avulso, assinatura mensal/anual, mentoria em turma e pacote corporativo. Registrar pedidos, faturas, eventos de webhook e concessões de acesso de forma auditável; nunca confiar apenas no retorno do navegador.
+## Próximas entregas
 
-## Entidades essenciais
-
-- Usuário, perfil, papel e consentimentos
-- Produto, preço, assinatura e pedido
-- Curso, módulo, aula e recurso
-- Trilha, etapa, progresso e certificado
-- Lab, sessão, limite de tempo e submissão
-- Simulação, cenário, evidência e relatório
-- Mentoria, turma, encontro e inscrição
-
-## Próximas entregas técnicas
-
-1. Definir identidade visual, primeira trilha e oferta comercial.
-2. Criar autenticação, catálogo conectado ao banco e área do aluno.
-3. Configurar Mercado Pago/Stripe em ambiente de teste, com webhooks e controle de acesso.
-4. Criar o primeiro lab isolado e uma simulação de resposta a incidente.
-5. Implantar analytics, políticas LGPD, termos e operação de suporte.
+1. Definir o manifesto de participação e o código de conduta.
+2. Publicar a base aberta e a primeira missão com um espaço de comentários moderado.
+3. Conectar Firebase Auth, perfis e interesse por frentes de prática.
+4. Criar calendário de encontros e registro público de decisões.
+5. Medir participação, retorno de revisão e saúde da moderação antes de expandir recursos.

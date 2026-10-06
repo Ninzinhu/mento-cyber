@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SmoothScroll } from "./components/behavior/smooth-scroll";
 
 export const metadata: Metadata = {
-  title: "MentoCyber — Escola de prática em cibersegurança",
+  title: "MentoCyber — Comunidade de prática em cibersegurança",
   description:
-    "Formação prática em cibersegurança, com roadmaps, laboratórios e mentorias.",
+    "Comunidade de prática em cibersegurança, com missões, laboratórios e revisão entre pares.",
 };
 
 export default function RootLayout({
@@ -12,7 +13,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" data-brand="lichen">
-      <body>{children}</body>
+      <body>
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }

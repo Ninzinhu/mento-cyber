@@ -1,79 +1,80 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { experiments, getExperiment } from "../experiments";
+import { ContributionForm } from "../../components/community/contribution-form";
+import { experiments, getExperiment } from "../../features/missions/experiments";
 
 const trainingProfiles: Record<
   string,
   { track: string; lab: string; deliverable: string; level: string; tool: string }
 > = {
   caso: {
-    track: "Fundamentos de defesa",
+    track: "Defesa em comunidade",
     lab: "Triagem de alertas",
     deliverable: "Linha do tempo",
-    level: "Base",
+    level: "Aberta",
     tool: "Leitor de logs",
   },
   sonda: {
-    track: "Telemetria e sinais",
+    track: "Sinais em conversa",
     lab: "Sinais fracos",
     deliverable: "Hipótese de investigação",
-    level: "Intermediário",
+    level: "Em grupo",
     tool: "Mapa de eventos",
   },
   matriz: {
-    track: "Operação responsável",
+    track: "Decisão responsável",
     lab: "Decisão sob contexto",
     deliverable: "Registro técnico",
-    level: "Base",
+    level: "Aberta",
     tool: "Matriz de decisão",
   },
   vertice: {
-    track: "Carreira em cyber",
+    track: "Repertório em cyber",
     lab: "Mapa de competências",
     deliverable: "Plano de 90 dias",
-    level: "Base",
+    level: "Aberta",
     tool: "Navegador de trilhas",
   },
   ritual: {
     track: "Fundamentos recorrentes",
     lab: "Revisão deliberada",
     deliverable: "Caderno de prática",
-    level: "Base",
+    level: "Aberta",
     tool: "Plano de revisão",
   },
   indice: {
     track: "Pesquisa em defesa",
     lab: "Consulta de evidências",
     deliverable: "Biblioteca anotada",
-    level: "Intermediário",
+    level: "Em grupo",
     tool: "Índice de fontes",
   },
   contrapeso: {
     track: "Risco e controles",
     lab: "Contexto de decisão",
     deliverable: "Justificativa de controle",
-    level: "Intermediário",
+    level: "Em grupo",
     tool: "Quadro de risco",
   },
   rastro: {
     track: "Investigação de incidentes",
     lab: "Correlação de eventos",
     deliverable: "Relatório de incidente",
-    level: "Intermediário",
+    level: "Em grupo",
     tool: "Linha de investigação",
   },
   turno: {
     track: "SOC e resposta",
     lab: "Triagem noturna",
     deliverable: "Escalonamento responsável",
-    level: "Avançado",
+    level: "Avançada",
     tool: "Fila de alertas",
   },
   convergencia: {
-    track: "Mentoria em comunidade",
+    track: "Revisão em comunidade",
     lab: "Revisão entre pares",
     deliverable: "Feedback técnico",
-    level: "Todos os níveis",
+    level: "Para a rede",
     tool: "Mesa de revisão",
   },
 };
@@ -100,21 +101,24 @@ export default async function StudyPage({
 
   return (
     <main className={`cyber-lab cyber-${experiment.slug}`}>
+      <a className="skip-link" href="#missao">
+        Pular para a missão
+      </a>
       <header className="cyber-topbar">
-        <Link href="/estudos">← laboratório</Link>
+        <Link href="/estudos">← missões</Link>
         <span>
-          MENTO<span>CYBER</span> / ACADEMIA
+          MENTO<span>CYBER</span> / COMUNIDADE
         </span>
-        <button type="button">ver rota</button>
+        <a href="#etapas">Ver etapas</a>
       </header>
       <div className="cyber-shell">
         <aside className="course-rail">
           <div className="rail-brand">
-            TRILHA
+            MISSÃO
             <br />
             {experiment.number}
           </div>
-          <nav aria-label="Navegação da trilha">
+          <nav aria-label="Navegação da missão">
             <a className="is-current" href="#missao">
               Missão atual
             </a>
@@ -123,7 +127,7 @@ export default async function StudyPage({
             <a href="#entrega">Entrega</a>
           </nav>
           <div className="rail-progress">
-            <span>PROGRESSO</span>
+            <span>ROTEIRO</span>
             <strong>
               02<span>/04</span>
             </strong>
@@ -136,7 +140,7 @@ export default async function StudyPage({
         <section className="mission-workspace" id="missao">
           <div className="workspace-heading">
             <div>
-              <p>TRILHA / {profile.track}</p>
+              <p>FRENTE / {profile.track}</p>
               <h1>
                 {experiment.name}: {experiment.headline}
               </h1>
@@ -145,7 +149,7 @@ export default async function StudyPage({
           </div>
           <div className="mission-grid">
             <article className="mission-card">
-              <span className="card-kicker">MISSÃO 02 · LAB ABERTO</span>
+              <span className="card-kicker">PRÁTICA ABERTA · REDE ATIVA</span>
               <h2>{profile.lab}</h2>
               <p>{experiment.description}</p>
               <div className="mission-meta">
@@ -156,12 +160,12 @@ export default async function StudyPage({
                   TEMPO <b>45–60 min</b>
                 </span>
               </div>
-              <button type="button">
-                Iniciar cenário <span>→</span>
-              </button>
+              <a className="scenario-link" href="#etapas">
+                Ver pontos de conversa <span>→</span>
+              </a>
             </article>
             <article className="checkpoint-card" id="etapas">
-              <span className="card-kicker">CHECKPOINTS</span>
+              <span className="card-kicker">PONTOS DE CONVERSA</span>
               <ol>
                 {experiment.notes.map((note, index) => (
                   <li className={index === 0 ? "is-done" : ""} key={note}>
@@ -170,10 +174,10 @@ export default async function StudyPage({
                       <strong>{note}</strong>
                       <small>
                         {index === 0
-                          ? "Contexto lido e limites definidos"
+                          ? "Cenário lido e limites combinados"
                           : index === 1
                             ? "Analisar pistas e formular hipótese"
-                            : "Registrar evidências e decisão"}
+                            : "Registrar evidências para compartilhar"}
                       </small>
                     </div>
                   </li>
@@ -185,8 +189,8 @@ export default async function StudyPage({
             <div>
               <span className="card-kicker">EVIDÊNCIA EM FOCO</span>
               <p>
-                Você não precisa “vencer” o lab. Precisa conseguir explicar o que
-                observou e por quê.
+                Você não precisa “vencer” a prática. Precisa conseguir explicar o que
+                observou e abrir espaço para outras leituras.
               </p>
             </div>
             <div className="evidence-sample">
@@ -197,20 +201,21 @@ export default async function StudyPage({
           </section>
         </section>
         <aside className="delivery-panel" id="entrega">
-          <span className="card-kicker">PRÓXIMA ENTREGA</span>
+          <span className="card-kicker">PARA LEVAR À REDE</span>
           <h2>{profile.deliverable}</h2>
           <p>
-            Um artefato curto para demonstrar raciocínio técnico, não apenas conclusão.
+            Um registro curto para tornar seu raciocínio visível e convidar revisão.
           </p>
           <ul>
             <li>Contexto e escopo</li>
             <li>Evidências relevantes</li>
-            <li>Próximo passo responsável</li>
+            <li>Pergunta para os pares</li>
           </ul>
-          <a href="#missao">Ver modelo de entrega →</a>
+          <a href="#missao">Ver modelo de contribuição →</a>
           <Link href={`/estudos/${nextExperiment.slug}`}>
-            Próxima trilha: {nextExperiment.name} →
+            Próxima missão: {nextExperiment.name} →
           </Link>
+          <ContributionForm missionId={experiment.slug} />
         </aside>
       </div>
     </main>

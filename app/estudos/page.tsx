@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { experiments } from "./experiments";
+import { experiments } from "../features/missions/experiments";
 
 const trackLabels: Record<string, string> = {
   caso: "DEFESA / FUNDAMENTOS",
@@ -11,56 +11,55 @@ const trackLabels: Record<string, string> = {
   contrapeso: "GRC / DECISÃO",
   rastro: "IR / INVESTIGAÇÃO",
   turno: "SOC / TRIAGEM",
-  convergencia: "MENTORIA / PARES",
+  convergencia: "COMUNIDADE / PARES",
 };
 
 const trackIdentities: Record<string, { code: string; role: string; level: string }> = {
-  caso: { code: "DF-01", role: "ANALISTA DE DEFESA", level: "INÍCIO" },
-  sonda: { code: "BT-02", role: "CAÇA A SINAIS", level: "INTERMEDIÁRIO" },
-  matriz: { code: "OP-03", role: "OPERADOR DE CONTEXTO", level: "INÍCIO" },
-  vertice: { code: "CR-04", role: "NAVEGADOR DE CARREIRA", level: "INÍCIO" },
-  ritual: { code: "FN-05", role: "PRÁTICA DE BASE", level: "INÍCIO" },
-  indice: { code: "PS-06", role: "PESQUISA APLICADA", level: "INTERMEDIÁRIO" },
-  contrapeso: { code: "GR-07", role: "DECISÃO E RISCO", level: "INTERMEDIÁRIO" },
-  rastro: { code: "IR-08", role: "INVESTIGAÇÃO", level: "INTERMEDIÁRIO" },
-  turno: { code: "SC-09", role: "OPERAÇÃO SOC", level: "AVANÇADO" },
+  caso: { code: "DF-01", role: "LEITURA COMPARTILHADA", level: "ABERTA" },
+  sonda: { code: "BT-02", role: "OBSERVAÇÃO DE SINAIS", level: "EM GRUPO" },
+  matriz: { code: "OP-03", role: "DECISÃO COM CONTEXTO", level: "ABERTA" },
+  vertice: { code: "CR-04", role: "TROCA DE REPERTÓRIO", level: "ABERTA" },
+  ritual: { code: "FN-05", role: "PRÁTICA RECORRENTE", level: "EM GRUPO" },
+  indice: { code: "PS-06", role: "PESQUISA COLETIVA", level: "EM GRUPO" },
+  contrapeso: { code: "GR-07", role: "CRITÉRIO E RISCO", level: "EM GRUPO" },
+  rastro: { code: "IR-08", role: "INVESTIGAÇÃO ABERTA", level: "EM GRUPO" },
+  turno: { code: "SC-09", role: "RODA DE TRIAGEM", level: "AVANÇADA" },
   convergencia: { code: "MT-10", role: "REVISÃO ENTRE PARES", level: "TODOS" },
 };
 
 export default function StudiesIndex() {
   return (
-    <main className="academy-index">
+    <main className="academy-index" id="conteudo">
+      <a className="skip-link" href="#trilhas">
+        Pular para as trilhas
+      </a>
       <header className="academy-header">
         <Link href="/" className="academy-brand">
           MENTO<span>CYBER</span>
         </Link>
-        <nav aria-label="Navegação da academia">
-          <a href="#trilhas">Trilhas</a>
-          <a href="#como-funciona">Como funciona</a>
-          <a href="#acesso">Acessar</a>
+        <nav aria-label="Navegação da comunidade">
+          <a href="#trilhas">Missões</a>
+          <a href="#como-funciona">Como participar</a>
+          <a href="#acesso">Entrar na rede</a>
         </nav>
       </header>
       <section className="academy-hero">
         <div>
-          <p className="academy-eyebrow">ACADEMIA / DEFESA DIGITAL APLICADA</p>
-          <h1>
-            Escolha uma trilha.
-            <br />
-            Construa <em>evidência.</em>
-          </h1>
+          <p className="academy-eyebrow">MAPA DA COMUNIDADE</p>
+          <h1>Encontre onde sua leitura pode contribuir.</h1>
           <p>
-            Formação para quem quer entender sistemas, investigar cenários e justificar
-            decisões técnicas — com base, laboratório e revisão humana.
+            Dez frentes de prática para observar cenários, construir hipóteses e trocar
+            evidências com a rede.
           </p>
           <a className="academy-primary" href="#trilhas">
-            Explorar trilhas <span>↓</span>
+            Ver missões <span>↓</span>
           </a>
         </div>
         <aside>
           <div className="academy-status">
-            <span>AGORA EM CAMPO</span>
+            <span>PRÁTICAS ABERTAS</span>
             <strong>02</strong>
-            <p>Labs guiados prontos para praticar.</p>
+            <p>Missões que você já pode levar para conversa.</p>
           </div>
           <div className="academy-signal">
             <i />
@@ -69,32 +68,32 @@ export default function StudiesIndex() {
             <i />
             <i />
           </div>
-          <small>UMA ESCOLA DE PRÁTICA, NÃO UMA COLEÇÃO DE VÍDEOS.</small>
+          <small>OBSERVE. PRATIQUE. COMPARTILHE.</small>
         </aside>
       </section>
       <section className="academy-metrics" aria-label="Visão geral">
         <div>
           <b>10</b>
-          <span>rotas para testar</span>
+          <span>frentes para explorar</span>
         </div>
         <div>
           <b>3</b>
-          <span>formatos de prática</span>
+          <span>formatos de encontro</span>
         </div>
         <div>
           <b>1</b>
-          <span>entrega por missão</span>
+          <span>revisão entre pares</span>
         </div>
       </section>
       <section className="academy-catalog" id="trilhas">
         <div className="catalog-heading">
           <div>
-            <p className="academy-eyebrow">CATÁLOGO DE ROTAS</p>
-            <h2>Encontre o ponto de partida.</h2>
+            <p className="academy-eyebrow">MAPA DE MISSÕES</p>
+            <h2>Escolha um tema para investigar junto.</h2>
           </div>
           <p>
-            Não há uma rota única. Cada trilha indica o contexto, o tipo de prática e a
-            entrega que comprova seu aprendizado.
+            Não há uma rota única. Cada missão indica um contexto, uma prática e uma
+            forma de compartilhar o que você observou.
           </p>
         </div>
         <div className="track-grid">
@@ -116,8 +115,8 @@ export default function StudiesIndex() {
               <p>{experiment.description}</p>
               <dl>
                 <div>
-                  <dt>FORMATO</dt>
-                  <dd>4 módulos + 1 lab</dd>
+                  <dt>DINÂMICA</dt>
+                  <dd>Contexto + prática</dd>
                 </div>
                 <div>
                   <dt>ÁREA</dt>
@@ -125,31 +124,31 @@ export default function StudiesIndex() {
                 </div>
               </dl>
               <Link href={`/estudos/${experiment.slug}`}>
-                Abrir missão <span>→</span>
+                Ver prática <span>→</span>
               </Link>
             </article>
           ))}
         </div>
       </section>
       <section className="academy-method" id="como-funciona">
-        <p className="academy-eyebrow">COMO FUNCIONA</p>
+        <p className="academy-eyebrow">COMO PARTICIPAR</p>
         <div>
-          <h2>Aprenda como o trabalho acontece.</h2>
+          <h2>Traga sua leitura. Leve novas perguntas.</h2>
           <ol>
             <li>
               <span>01</span>
-              <strong>Contexto</strong>
-              <p>Você começa pelo cenário e pelos limites.</p>
+              <strong>Chegue com contexto</strong>
+              <p>Comece pelo cenário, pelos limites e pela pergunta em aberto.</p>
             </li>
             <li>
               <span>02</span>
-              <strong>Investigação</strong>
-              <p>O lab apresenta pistas e checkpoints.</p>
+              <strong>Pratique</strong>
+              <p>Use as pistas para formular uma hipótese responsável.</p>
             </li>
             <li>
               <span>03</span>
-              <strong>Entrega</strong>
-              <p>Você registra evidências e decisão.</p>
+              <strong>Compartilhe</strong>
+              <p>Registre evidências e leve sua decisão para revisão entre pares.</p>
             </li>
           </ol>
         </div>
@@ -159,10 +158,9 @@ export default function StudiesIndex() {
           MENTO<span>CYBER</span>
         </span>
         <p>
-          Escolha uma rota, faça o primeiro lab e veja se esse tipo de trabalho é para
-          você.
+          Encontre uma missão, traga uma hipótese e ajude a construir a memória da rede.
         </p>
-        <a href="mailto:contato@mentocyber.com">Quero receber os próximos labs →</a>
+        <a href="mailto:contato@mentocyber.com">Quero acompanhar a comunidade →</a>
       </footer>
     </main>
   );

@@ -1,44 +1,45 @@
-import { BrandLab } from "./components/brand-lab";
-import { SiteFooter, SiteHeader } from "./components/site-chrome";
+import { InterestForm } from "./components/community/interest-form";
+import { HorizonHero } from "./components/hero/horizon-hero";
+import { SiteFooter, SiteHeader } from "./components/shell/site-chrome";
 
 const libraryItems = [
   [
     "01",
-    "Mapa de estudos para sua primeira vaga",
-    "Um roteiro de 90 dias para organizar fundamentos, projetos e candidatura.",
+    "Mapa de referências para começar em defesa",
+    "Um ponto de partida para organizar fundamentos, ferramentas e perguntas úteis.",
     "ABERTO",
   ],
   [
     "02",
-    "Checklist de hardening para Windows",
-    "Uma lista prática para revisar configurações essenciais de um ambiente.",
+    "Checklist coletivo de hardening para Windows",
+    "Uma lista prática que a comunidade revisa para fortalecer ambientes reais.",
     "ABERTO",
   ],
   [
     "03",
-    "Leitura de log: o que merece investigação?",
-    "Exercício inicial de análise de evidências para quem quer seguir em defesa.",
-    "EM PREPARO",
+    "Leitura de log: o que merece conversa?",
+    "Um ponto de partida para levantar hipóteses e compará-las com outras pessoas.",
+    "EM CONSTRUÇÃO",
   ],
 ];
 
 const tracks = [
   [
-    "TRILHA 01",
+    "FRENTE 01",
     "Fundamentos",
-    "Para quem está construindo o vocabulário e o raciocínio da área.",
+    "Para quem quer construir repertório e participar das primeiras conversas.",
     ["Linux e redes", "Fundamentos de segurança", "Carreira e portfólio"],
   ],
   [
-    "TRILHA 02",
+    "FRENTE 02",
     "Blue Team",
-    "Para quem quer detectar, analisar e responder a incidentes.",
+    "Para investigar sinais, comparar leituras e discutir respostas responsáveis.",
     ["Logs e telemetria", "SIEM e investigação", "Relatório de incidente"],
   ],
   [
-    "TRILHA 03",
+    "FRENTE 03",
     "Cloud & GRC",
-    "Para quem quer atuar em ambientes modernos e decisões de risco.",
+    "Para trocar critérios sobre risco, controles e ambientes em transformação.",
     ["Controles em cloud", "Gestão de risco", "Segurança aplicada"],
   ],
 ];
@@ -47,49 +48,17 @@ export default function Home() {
   return (
     <>
       <SiteHeader />
-      <main>
-        <section id="inicio" className="wrap hero">
-          <div>
-            <div className="kicker">Escola de cibersegurança aplicada</div>
-            <h1>
-              Estudo com
-              <br />
-              <em>direção.</em>
-              <br />
-              Prática com prova.
-            </h1>
-            <p>
-              MentoCyber é para quem quer construir repertório técnico, aprender a
-              investigar e se preparar para atuar em segurança — com materiais claros,
-              desafios responsáveis e feedback humano.
-            </p>
-            <div className="hero-actions">
-              <a className="action" href="#biblioteca">
-                Ver conteúdos gratuitos
-              </a>
-              <a className="outline" href="#turmas">
-                Conhecer as turmas
-              </a>
-            </div>
-          </div>
-          <aside className="field-note">
-            <div className="label">CADERNO DE CAMPO / 01</div>
-            <strong>
-              Conhecimento só vira habilidade quando você consegue explicar a decisão
-              tomada.
-            </strong>
-            <p>
-              Cada trilha combina base técnica, contexto de negócio e uma entrega que
-              pode fazer parte do seu portfólio.
-            </p>
-          </aside>
-        </section>
+      <a className="skip-link" href="#conteudo">
+        Pular para o conteúdo
+      </a>
+      <main id="conteudo">
+        <HorizonHero />
         <div className="wrap index">
           {[
-            ["01 / BASE", "Conteúdos que abrem a rota"],
-            ["02 / TRILHA", "Progressão por competência"],
-            ["03 / PRÁTICA", "Casos, labs e relatórios"],
-            ["04 / TURMA", "Mentoria e revisão humana"],
+            ["01 / BASE", "Referências que permanecem abertas"],
+            ["02 / MISSÕES", "Práticas para fazer com contexto"],
+            ["03 / PARES", "Hipóteses que circulam e melhoram"],
+            ["04 / REDE", "Encontros, revisões e memória coletiva"],
           ].map(([label, text]) => (
             <div className="index-item" key={label}>
               <b>{label}</b>
@@ -104,9 +73,8 @@ export default function Home() {
               <h2>Comece pelo que é útil hoje.</h2>
             </div>
             <p className="section-lead">
-              Materiais curtos para orientar os primeiros passos e ajudar você a
-              entender se a área faz sentido para sua carreira. Sem conta, sem promessa
-              vazia.
+              Referências que ajudam você a chegar com contexto nas conversas. Sem
+              barreira de entrada e sem promessa de atalho.
             </p>
           </div>
           <div className="content-list">
@@ -124,8 +92,8 @@ export default function Home() {
         </section>
         <section id="trilhas" className="section route">
           <div className="wrap">
-            <div className="kicker">Trilhas de formação</div>
-            <h2>Uma sequência pensada para o trabalho real.</h2>
+            <div className="kicker">Frentes de prática</div>
+            <h2>Encontre um tema e traga sua leitura.</h2>
             <div className="route-grid">
               {tracks.map(([label, title, description, topics]) => (
                 <article className="route-card" key={label as string}>
@@ -144,14 +112,15 @@ export default function Home() {
         </section>
         <section id="pratica" className="wrap section practice">
           <div>
-            <div className="kicker">Método MentoCyber</div>
+            <div className="kicker">Como participamos</div>
             <h2>
               Aprender é<br />
               conseguir <em>agir.</em>
             </h2>
             <p className="section-lead">
-              O foco não é completar telas. É entender o cenário, formular uma hipótese,
-              registrar evidências e comunicar uma decisão técnica de forma responsável.
+              O foco não é acumular conteúdo. É entender o cenário, formular uma
+              hipótese, registrar evidências e colocá-las em conversa de forma
+              responsável.
             </p>
           </div>
           <div className="steps">
@@ -159,17 +128,17 @@ export default function Home() {
               [
                 "01",
                 "Contexto",
-                "Você recebe um cenário, limites e objetivos claros antes de tocar em qualquer ferramenta.",
+                "Você recebe um cenário, limites e perguntas claras antes de tocar em qualquer ferramenta.",
               ],
               [
                 "02",
                 "Investigação",
-                "O lab apresenta pistas e checkpoints para você construir uma linha de raciocínio.",
+                "A prática apresenta pistas e checkpoints para você construir uma linha de raciocínio.",
               ],
               [
                 "03",
-                "Entrega",
-                "Você registra decisões, evidências e próximos passos em um relatório simples e objetivo.",
+                "Troca",
+                "Você compartilha decisões, evidências e próximos passos para revisão entre pares.",
               ],
             ].map(([number, title, description]) => (
               <article className="step" key={number}>
@@ -182,63 +151,60 @@ export default function Home() {
             ))}
           </div>
         </section>
-        <section id="turmas" className="wrap section">
+        <section id="rede" className="wrap section">
           <div className="section-head">
             <div>
-              <div className="kicker">Acesso</div>
-              <h2>Comece aberto. Avance em turma.</h2>
+              <div className="kicker">A comunidade</div>
+              <h2>Chegue com curiosidade. Fique pela troca.</h2>
             </div>
             <p className="section-lead">
-              A primeira versão da MentoCyber é propositalmente simples: conteúdo aberto
-              para explorar e turmas pequenas para quem precisa de acompanhamento.
+              A MentoCyber nasce aberta: referências públicas, missões para praticar e
+              encontros para quem quer pensar junto, sem hierarquia de sala de aula.
             </p>
           </div>
           <div className="offer">
             <article className="offer-card">
-              <div className="eyebrow">BIBLIOTECA</div>
-              <h3>Explorar</h3>
-              <p>Para reconhecer a rota e estudar no seu ritmo.</p>
+              <div className="eyebrow">BASE ABERTA</div>
+              <h3>Chegar com contexto</h3>
+              <p>Para consultar referências e começar uma conversa bem situada.</p>
               <ul>
-                <li>Roadmaps e checklists</li>
-                <li>Exercícios de base</li>
-                <li>Novos materiais por e-mail</li>
+                <li>Referências e checklists</li>
+                <li>Casos para observar</li>
+                <li>Atualizações da rede</li>
               </ul>
               <a className="outline" href="#acesso">
-                Quero começar
+                Ver a base aberta
               </a>
             </article>
             <article className="offer-card featured">
-              <div className="eyebrow">PRIMEIRA TURMA</div>
-              <h3>Mentoria prática</h3>
-              <p>Para aplicar a trilha com encontros ao vivo e revisão de entregas.</p>
+              <div className="eyebrow">REDE DE PRÁTICA</div>
+              <h3>Participar dos encontros</h3>
+              <p>
+                Para levar uma hipótese, revisar entregas e contribuir com outras
+                pessoas.
+              </p>
               <ul>
-                <li>Encontros em grupo</li>
-                <li>Casos e desafios semanais</li>
-                <li>Comunidade e feedback</li>
+                <li>Encontros entre pares</li>
+                <li>Missões compartilhadas</li>
+                <li>Revisão e memória coletiva</li>
               </ul>
               <a className="action" href="#acesso">
-                Entrar na lista de interesse
+                Acompanhar a comunidade
               </a>
             </article>
           </div>
         </section>
         <section id="acesso" className="closing">
           <div className="wrap">
-            <div className="kicker orange-kicker">COMEÇO RESPONSÁVEL</div>
-            <h2>Construa uma carreira que sabe justificar cada decisão.</h2>
+            <div className="kicker orange-kicker">CONVITE ABERTO</div>
+            <h2>Defesa melhora quando o raciocínio circula.</h2>
             <p>
-              Receba os primeiros conteúdos da MentoCyber e o aviso quando a primeira
-              turma abrir.
+              Receba as próximas missões abertas e os encontros em que a rede vai se
+              reunir.
             </p>
-            <a
-              className="action"
-              href="mailto:contato@mentocyber.com?subject=Lista%20de%20interesse%20-%20MentoCyber"
-            >
-              Quero entrar na lista
-            </a>
+            <InterestForm />
           </div>
         </section>
-        <BrandLab />
       </main>
       <SiteFooter />
     </>
