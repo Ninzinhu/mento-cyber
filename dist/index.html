@@ -1,27 +1,732 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MentoCyber: formação prática em cibersegurança, com roadmaps, laboratórios e mentorias." />
+  <meta name="description"
+    content="MentoCyber: formação prática em cibersegurança, com roadmaps, laboratórios e mentorias." />
   <title>MentoCyber — Escola de prática em cibersegurança</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231e2522'/%3E%3Cpath d='M32 9 51 17v14c0 12-7.7 20.5-19 25-11.3-4.5-19-13-19-25V17z' fill='none' stroke='%23f1a638' stroke-width='5'/%3E%3Cpath d='M23 33h18M32 24v18' stroke='%23f6f1e7' stroke-width='5'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231e2522'/%3E%3Cpath d='M32 9 51 17v14c0 12-7.7 20.5-19 25-11.3-4.5-19-13-19-25V17z' fill='none' stroke='%23f1a638' stroke-width='5'/%3E%3Cpath d='M23 33h18M32 24v18' stroke='%23f6f1e7' stroke-width='5'/%3E%3C/svg%3E" />
   <style>
-    :root{--paper:#f6f1e7;--paper-deep:#ebe2d2;--ink:#1c2422;--soft:#58615c;--line:#c7bdad;--orange:#d66c2d;--dark:#202725;--cream:#fffaf0}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 Arial,Helvetica,sans-serif}a{color:inherit;text-decoration:none}.wrap{max-width:1180px;margin:0 auto;padding:0 34px}.topline{height:34px;background:var(--dark);color:#e9e0d0;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center}.topline .wrap{width:100%;display:flex;justify-content:space-between}.nav{min-height:96px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-weight:900;letter-spacing:-.06em;font-size:1.62rem}.brand span{color:var(--orange)}.navlinks{display:flex;align-items:center;gap:25px;font-size:.88rem;font-weight:700}.navlinks a:not(.action){color:#45504a}.action{background:var(--orange);color:white;padding:11px 16px;font-weight:800}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:55px;padding:92px 0 82px;border-bottom:1px solid var(--line)}.kicker{font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#6a4d32;display:flex;gap:12px;align-items:center}.kicker:before{content:"";width:28px;height:2px;background:var(--orange)}h1,h2,h3{font-family:Georgia,"Times New Roman",serif}.hero h1{font-size:clamp(3.2rem,6.5vw,6.4rem);line-height:.9;letter-spacing:-.075em;margin:25px 0 24px;font-weight:500}.hero h1 em{font-style:italic;color:var(--orange)}.hero p{max-width:610px;color:var(--soft);font-size:1.14rem}.hero-actions{display:flex;gap:13px;margin-top:31px;align-items:center}.outline{border:1px solid var(--ink);padding:10px 15px;font-size:.9rem;font-weight:800}.field-note{align-self:end;border-top:5px solid var(--orange);background:var(--dark);color:#f0eadf;padding:27px}.field-note .label{color:#e9aa69;font-size:.7rem;font-weight:800;letter-spacing:.14em}.field-note strong{font:1.8rem/1.08 Georgia,serif;display:block;margin:14px 0}.field-note p{font-size:.9rem;color:#c9d0c8;margin:0}.index{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}.index-item{padding:24px 24px 26px 0;border-right:1px solid var(--line)}.index-item+ .index-item{padding-left:24px}.index-item:last-child{border:0}.index-item b{font-size:.73rem;color:var(--orange);letter-spacing:.1em}.index-item strong{display:block;margin-top:8px;line-height:1.2}.section{padding:94px 0;border-bottom:1px solid var(--line)}.section-head{display:grid;grid-template-columns:.8fr 1.2fr;gap:65px;align-items:start}.section h2{font-size:clamp(2.35rem,4.5vw,4.2rem);line-height:.94;letter-spacing:-.06em;font-weight:500;margin:16px 0}.section-lead{color:var(--soft);font-size:1.05rem;margin:34px 0 0;max-width:560px}.content-list{margin-top:53px;border-top:1px solid var(--ink)}.content-row{display:grid;grid-template-columns:90px 1fr 180px;gap:25px;align-items:center;padding:21px 0;border-bottom:1px solid var(--line)}.content-row .number{font:1.2rem Georgia,serif;color:var(--orange)}.content-row h3{font-size:1.35rem;margin:0 0 3px;font-weight:500}.content-row p{color:var(--soft);margin:0;font-size:.91rem}.status{justify-self:end;border:1px solid var(--line);padding:5px 9px;font-size:.68rem;font-weight:800;letter-spacing:.08em}.route{background:var(--dark);color:#f5efe2}.route .kicker{color:#edbd87}.route-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:50px;border-left:1px solid #52605a}.route-card{padding:0 28px 10px;border-right:1px solid #52605a}.route-card b{color:#f3a558;font-size:.72rem;letter-spacing:.12em}.route-card h3{font-size:1.7rem;font-weight:500;margin:20px 0 15px}.route-card p{color:#bbc4bc;font-size:.94rem;max-width:285px}.route-card ul{padding-left:17px;color:#dce1da;font-size:.88rem}.practice{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}.practice h2{font-size:clamp(2.5rem,4.5vw,4.4rem);line-height:.94;letter-spacing:-.06em;font-weight:500;margin:15px 0}.steps{border-top:1px solid var(--ink)}.step{padding:20px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:52px 1fr;gap:15px}.step-no{font:1.4rem Georgia,serif;color:var(--orange)}.step h3{margin:0;font-size:1.3rem;font-weight:500}.step p{margin:5px 0 0;color:var(--soft);font-size:.91rem}.offer{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:45px}.offer-card{padding:29px;border:1px solid var(--line);background:var(--cream)}.offer-card.featured{background:var(--paper-deep);border:2px solid var(--ink)}.offer-card h3{font-size:2rem;margin:7px 0;font-weight:500}.offer-card p{color:var(--soft);min-height:48px}.offer-card ul{padding-left:18px;line-height:1.9;font-size:.92rem}.eyebrow{font-size:.72rem;letter-spacing:.12em;font-weight:800;color:var(--orange)}.closing{padding:100px 0;background:var(--orange);color:white}.closing h2{font-size:clamp(3rem,6vw,5.8rem);line-height:.9;letter-spacing:-.07em;font-weight:500;max-width:850px;margin:19px 0}.closing p{max-width:560px;font-size:1.08rem}.closing .action{background:var(--dark);margin-top:20px}.footer{padding:32px 0;background:var(--dark);color:#ebe3d5;display:flex;justify-content:space-between;align-items:center;font-size:.82rem}.footer .brand{font-size:1.25rem}@media(max-width:780px){.wrap{padding:0 20px}.topline .wrap span:last-child{display:none}.nav{min-height:76px}.navlinks a:not(.action){display:none}.hero,.section-head,.practice{grid-template-columns:1fr;gap:35px}.hero{padding:64px 0}.field-note{max-width:440px}.index{grid-template-columns:1fr 1fr}.index-item{padding:17px;border-bottom:1px solid var(--line)}.index-item:nth-child(2){border-right:0}.index-item+ .index-item{padding-left:17px}.content-row{grid-template-columns:42px 1fr}.content-row .status{grid-column:2;justify-self:start}.route-grid,.offer{grid-template-columns:1fr}.route-card{border-right:0;border-bottom:1px solid #52605a;padding:22px 0}.route-card:last-child{border:0}.section{padding:68px 0}.footer{display:block}.footer p{margin:8px 0 0}}
+    :root {
+      --paper: #f6f1e7;
+      --paper-deep: #ebe2d2;
+      --ink: #1c2422;
+      --soft: #58615c;
+      --line: #c7bdad;
+      --orange: #d66c2d;
+      --dark: #202725;
+      --cream: #fffaf0
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.55 Arial, Helvetica, sans-serif
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 34px
+    }
+
+    .topline {
+      height: 34px;
+      background: var(--dark);
+      color: #e9e0d0;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center
+    }
+
+    .topline .wrap {
+      width: 100%;
+      display: flex;
+      justify-content: space-between
+    }
+
+    .nav {
+      min-height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .brand {
+      font-weight: 900;
+      letter-spacing: -.06em;
+      font-size: 1.62rem
+    }
+
+    .brand span {
+      color: var(--orange)
+    }
+
+    .navlinks {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+      font-size: .88rem;
+      font-weight: 700
+    }
+
+    .navlinks a:not(.action) {
+      color: #45504a
+    }
+
+    .action {
+      background: var(--orange);
+      color: white;
+      padding: 11px 16px;
+      font-weight: 800
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 55px;
+      padding: 92px 0 82px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .kicker {
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #6a4d32;
+      display: flex;
+      gap: 12px;
+      align-items: center
+    }
+
+    .kicker:before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      background: var(--orange)
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: Georgia, "Times New Roman", serif
+    }
+
+    .hero h1 {
+      font-size: clamp(3.2rem, 6.5vw, 6.4rem);
+      line-height: .9;
+      letter-spacing: -.075em;
+      margin: 25px 0 24px;
+      font-weight: 500
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--orange)
+    }
+
+    .hero p {
+      max-width: 610px;
+      color: var(--soft);
+      font-size: 1.14rem
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 13px;
+      margin-top: 31px;
+      align-items: center
+    }
+
+    .outline {
+      border: 1px solid var(--ink);
+      padding: 10px 15px;
+      font-size: .9rem;
+      font-weight: 800
+    }
+
+    .field-note {
+      align-self: end;
+      border-top: 5px solid var(--orange);
+      background: var(--dark);
+      color: #f0eadf;
+      padding: 27px
+    }
+
+    .field-note .label {
+      color: #e9aa69;
+      font-size: .7rem;
+      font-weight: 800;
+      letter-spacing: .14em
+    }
+
+    .field-note strong {
+      font: 1.8rem/1.08 Georgia, serif;
+      display: block;
+      margin: 14px 0
+    }
+
+    .field-note p {
+      font-size: .9rem;
+      color: #c9d0c8;
+      margin: 0
+    }
+
+    .index {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .index-item {
+      padding: 24px 24px 26px 0;
+      border-right: 1px solid var(--line)
+    }
+
+    .index-item+.index-item {
+      padding-left: 24px
+    }
+
+    .index-item:last-child {
+      border: 0
+    }
+
+    .index-item b {
+      font-size: .73rem;
+      color: var(--orange);
+      letter-spacing: .1em
+    }
+
+    .index-item strong {
+      display: block;
+      margin-top: 8px;
+      line-height: 1.2
+    }
+
+    .section {
+      padding: 94px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 65px;
+      align-items: start
+    }
+
+    .section h2 {
+      font-size: clamp(2.35rem, 4.5vw, 4.2rem);
+      line-height: .94;
+      letter-spacing: -.06em;
+      font-weight: 500;
+      margin: 16px 0
+    }
+
+    .section-lead {
+      color: var(--soft);
+      font-size: 1.05rem;
+      margin: 34px 0 0;
+      max-width: 560px
+    }
+
+    .content-list {
+      margin-top: 53px;
+      border-top: 1px solid var(--ink)
+    }
+
+    .content-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 180px;
+      gap: 25px;
+      align-items: center;
+      padding: 21px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .content-row .number {
+      font: 1.2rem Georgia, serif;
+      color: var(--orange)
+    }
+
+    .content-row h3 {
+      font-size: 1.35rem;
+      margin: 0 0 3px;
+      font-weight: 500
+    }
+
+    .content-row p {
+      color: var(--soft);
+      margin: 0;
+      font-size: .91rem
+    }
+
+    .status {
+      justify-self: end;
+      border: 1px solid var(--line);
+      padding: 5px 9px;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .08em
+    }
+
+    .route {
+      background: var(--dark);
+      color: #f5efe2
+    }
+
+    .route .kicker {
+      color: #edbd87
+    }
+
+    .route-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 50px;
+      border-left: 1px solid #52605a
+    }
+
+    .route-card {
+      padding: 0 28px 10px;
+      border-right: 1px solid #52605a
+    }
+
+    .route-card b {
+      color: #f3a558;
+      font-size: .72rem;
+      letter-spacing: .12em
+    }
+
+    .route-card h3 {
+      font-size: 1.7rem;
+      font-weight: 500;
+      margin: 20px 0 15px
+    }
+
+    .route-card p {
+      color: #bbc4bc;
+      font-size: .94rem;
+      max-width: 285px
+    }
+
+    .route-card ul {
+      padding-left: 17px;
+      color: #dce1da;
+      font-size: .88rem
+    }
+
+    .practice {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start
+    }
+
+    .practice h2 {
+      font-size: clamp(2.5rem, 4.5vw, 4.4rem);
+      line-height: .94;
+      letter-spacing: -.06em;
+      font-weight: 500;
+      margin: 15px 0
+    }
+
+    .steps {
+      border-top: 1px solid var(--ink)
+    }
+
+    .step {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 15px
+    }
+
+    .step-no {
+      font: 1.4rem Georgia, serif;
+      color: var(--orange)
+    }
+
+    .step h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 500
+    }
+
+    .step p {
+      margin: 5px 0 0;
+      color: var(--soft);
+      font-size: .91rem
+    }
+
+    .offer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+      margin-top: 45px
+    }
+
+    .offer-card {
+      padding: 29px;
+      border: 1px solid var(--line);
+      background: var(--cream)
+    }
+
+    .offer-card.featured {
+      background: var(--paper-deep);
+      border: 2px solid var(--ink)
+    }
+
+    .offer-card h3 {
+      font-size: 2rem;
+      margin: 7px 0;
+      font-weight: 500
+    }
+
+    .offer-card p {
+      color: var(--soft);
+      min-height: 48px
+    }
+
+    .offer-card ul {
+      padding-left: 18px;
+      line-height: 1.9;
+      font-size: .92rem
+    }
+
+    .eyebrow {
+      font-size: .72rem;
+      letter-spacing: .12em;
+      font-weight: 800;
+      color: var(--orange)
+    }
+
+    .closing {
+      padding: 100px 0;
+      background: var(--orange);
+      color: white
+    }
+
+    .closing h2 {
+      font-size: clamp(3rem, 6vw, 5.8rem);
+      line-height: .9;
+      letter-spacing: -.07em;
+      font-weight: 500;
+      max-width: 850px;
+      margin: 19px 0
+    }
+
+    .closing p {
+      max-width: 560px;
+      font-size: 1.08rem
+    }
+
+    .closing .action {
+      background: var(--dark);
+      margin-top: 20px
+    }
+
+    .footer {
+      padding: 32px 0;
+      background: var(--dark);
+      color: #ebe3d5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .82rem
+    }
+
+    .footer .brand {
+      font-size: 1.25rem
+    }
+
+    @media(max-width:780px) {
+      .wrap {
+        padding: 0 20px
+      }
+
+      .topline .wrap span:last-child {
+        display: none
+      }
+
+      .nav {
+        min-height: 76px
+      }
+
+      .navlinks a:not(.action) {
+        display: none
+      }
+
+      .hero,
+      .section-head,
+      .practice {
+        grid-template-columns: 1fr;
+        gap: 35px
+      }
+
+      .hero {
+        padding: 64px 0
+      }
+
+      .field-note {
+        max-width: 440px
+      }
+
+      .index {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .index-item {
+        padding: 17px;
+        border-bottom: 1px solid var(--line)
+      }
+
+      .index-item:nth-child(2) {
+        border-right: 0
+      }
+
+      .index-item+.index-item {
+        padding-left: 17px
+      }
+
+      .content-row {
+        grid-template-columns: 42px 1fr
+      }
+
+      .content-row .status {
+        grid-column: 2;
+        justify-self: start
+      }
+
+      .route-grid,
+      .offer {
+        grid-template-columns: 1fr
+      }
+
+      .route-card {
+        border-right: 0;
+        border-bottom: 1px solid #52605a;
+        padding: 22px 0
+      }
+
+      .route-card:last-child {
+        border: 0
+      }
+
+      .section {
+        padding: 68px 0
+      }
+
+      .footer {
+        display: block
+      }
+
+      .footer p {
+        margin: 8px 0 0
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="topline"><div class="wrap"><span>MENTOCYBER / FORMAÇÃO EM DEFESA DIGITAL</span><span>Conteúdo gratuito + mentorias práticas</span></div></div>
-  <header class="wrap nav"><a class="brand" href="#inicio">MENTO<span>CYBER</span></a><nav class="navlinks"><a href="#biblioteca">Biblioteca</a><a href="#trilhas">Trilhas</a><a href="#pratica">Prática</a><a href="#turmas">Turmas</a><a class="action" href="#acesso">Começar sem custo</a></nav></header>
+  <div class="topline">
+    <div class="wrap">
+      <span>MENTOCYBER / FORMAÇÃO EM DEFESA DIGITAL</span><span>Conteúdo gratuito + mentorias práticas</span></div>
+  </div>
+  <header class="wrap nav"><a class="brand" href="#inicio">MENTO<span>CYBER</span></a>
+    <nav class="navlinks"><a href="#biblioteca">Biblioteca</a><a href="#trilhas">Trilhas</a><a
+        href="#pratica">Prática</a><a href="#turmas">Turmas</a><a class="action" href="#acesso">Começar sem custo</a>
+    </nav>
+  </header>
   <main>
-    <section id="inicio" class="wrap hero"><div><div class="kicker">Escola de cibersegurança aplicada</div><h1>Estudo com<br><em>direção.</em><br>Prática com prova.</h1><p>MentoCyber é para quem quer construir repertório técnico, aprender a investigar e se preparar para atuar em segurança — com materiais claros, desafios responsáveis e feedback humano.</p><div class="hero-actions"><a class="action" href="#biblioteca">Ver conteúdos gratuitos</a><a class="outline" href="#turmas">Conhecer as turmas</a></div></div><aside class="field-note"><div class="label">CADERNO DE CAMPO / 01</div><strong>Conhecimento só vira habilidade quando você consegue explicar a decisão tomada.</strong><p>Cada trilha combina base técnica, contexto de negócio e uma entrega que pode fazer parte do seu portfólio.</p></aside></section>
-    <div class="wrap index"><div class="index-item"><b>01 / BASE</b><strong>Conteúdos que abrem a rota</strong></div><div class="index-item"><b>02 / TRILHA</b><strong>Progressão por competência</strong></div><div class="index-item"><b>03 / PRÁTICA</b><strong>Casos, labs e relatórios</strong></div><div class="index-item"><b>04 / TURMA</b><strong>Mentoria e revisão humana</strong></div></div>
-    <section id="biblioteca" class="wrap section"><div class="section-head"><div><div class="kicker">Biblioteca aberta</div><h2>Comece pelo que é útil hoje.</h2></div><p class="section-lead">Materiais curtos para orientar os primeiros passos e ajudar você a entender se a área faz sentido para sua carreira. Sem conta, sem promessa vazia.</p></div><div class="content-list"><article class="content-row"><div class="number">01</div><div><h3>Mapa de estudos para sua primeira vaga</h3><p>Um roteiro de 90 dias para organizar fundamentos, projetos e candidatura.</p></div><span class="status">ABERTO</span></article><article class="content-row"><div class="number">02</div><div><h3>Checklist de hardening para Windows</h3><p>Uma lista prática para revisar configurações essenciais de um ambiente.</p></div><span class="status">ABERTO</span></article><article class="content-row"><div class="number">03</div><div><h3>Leitura de log: o que merece investigação?</h3><p>Exercício inicial de análise de evidências para quem quer seguir em defesa.</p></div><span class="status">EM PREPARO</span></article></div></section>
-    <section id="trilhas" class="section route"><div class="wrap"><div class="kicker">Trilhas de formação</div><h2>Uma sequência pensada para o trabalho real.</h2><div class="route-grid"><article class="route-card"><b>TRILHA 01</b><h3>Fundamentos</h3><p>Para quem está construindo o vocabulário e o raciocínio da área.</p><ul><li>Linux e redes</li><li>Fundamentos de segurança</li><li>Carreira e portfólio</li></ul></article><article class="route-card"><b>TRILHA 02</b><h3>Blue Team</h3><p>Para quem quer detectar, analisar e responder a incidentes.</p><ul><li>Logs e telemetria</li><li>SIEM e investigação</li><li>Relatório de incidente</li></ul></article><article class="route-card"><b>TRILHA 03</b><h3>Cloud & GRC</h3><p>Para quem quer atuar em ambientes modernos e decisões de risco.</p><ul><li>Controles em cloud</li><li>Gestão de risco</li><li>Segurança aplicada</li></ul></article></div></div></section>
-    <section id="pratica" class="wrap section practice"><div><div class="kicker">Método MentoCyber</div><h2>Aprender é<br>conseguir <em>agir.</em></h2><p class="section-lead">O foco não é completar telas. É entender o cenário, formular uma hipótese, registrar evidências e comunicar uma decisão técnica de forma responsável.</p></div><div class="steps"><article class="step"><div class="step-no">01</div><div><h3>Contexto</h3><p>Você recebe um cenário, limites e objetivos claros antes de tocar em qualquer ferramenta.</p></div></article><article class="step"><div class="step-no">02</div><div><h3>Investigação</h3><p>O lab apresenta pistas e checkpoints para você construir uma linha de raciocínio.</p></div></article><article class="step"><div class="step-no">03</div><div><h3>Entrega</h3><p>Você registra decisões, evidências e próximos passos em um relatório simples e objetivo.</p></div></article></div></section>
-    <section id="turmas" class="wrap section"><div class="section-head"><div><div class="kicker">Acesso</div><h2>Comece aberto. Avance em turma.</h2></div><p class="section-lead">A primeira versão da MentoCyber é propositalmente simples: conteúdo aberto para explorar e turmas pequenas para quem precisa de acompanhamento.</p></div><div class="offer"><article class="offer-card"><div class="eyebrow">BIBLIOTECA</div><h3>Explorar</h3><p>Para reconhecer a rota e estudar no seu ritmo.</p><ul><li>Roadmaps e checklists</li><li>Exercícios de base</li><li>Novos materiais por e-mail</li></ul><a class="outline" href="#acesso">Quero começar</a></article><article class="offer-card featured"><div class="eyebrow">PRIMEIRA TURMA</div><h3>Mentoria prática</h3><p>Para aplicar a trilha com encontros ao vivo e revisão de entregas.</p><ul><li>Encontros em grupo</li><li>Casos e desafios semanais</li><li>Comunidade e feedback</li></ul><a class="action" href="#acesso">Entrar na lista de interesse</a></article></div></section>
-    <section id="acesso" class="closing"><div class="wrap"><div class="kicker" style="color:#ffe0bd">COMEÇO RESPONSÁVEL</div><h2>Construa uma carreira que sabe justificar cada decisão.</h2><p>Receba os primeiros conteúdos da MentoCyber e o aviso quando a primeira turma abrir.</p><a class="action" href="mailto:contato@mentocyber.com?subject=Lista%20de%20interesse%20-%20MentoCyber">Quero entrar na lista</a></div></section>
+    <section id="inicio" class="wrap hero">
+      <div>
+        <div class="kicker">Escola de cibersegurança aplicada</div>
+        <h1>Estudo com<br><em>direção.</em><br>Prática com prova.</h1>
+        <p>MentoCyber é para quem quer construir repertório técnico, aprender a investigar e se preparar para atuar em
+          segurança — com materiais claros, desafios responsáveis e feedback humano.</p>
+        <div class="hero-actions"><a class="action" href="#biblioteca">Ver conteúdos gratuitos</a><a class="outline"
+            href="#turmas">Conhecer as turmas</a></div>
+      </div>
+      <aside class="field-note">
+        <div class="label">CADERNO DE CAMPO / 01</div>
+        <strong>Conhecimento só vira habilidade quando você consegue explicar a decisão tomada.</strong>
+        <p>Cada trilha combina base técnica, contexto de negócio e uma entrega que pode fazer parte do seu portfólio.
+        </p>
+      </aside>
+    </section>
+    <div class="wrap index">
+      <div class="index-item"><b>01 / BASE</b><strong>Conteúdos que abrem a rota</strong></div>
+      <div class="index-item"><b>02 / TRILHA</b><strong>Progressão por competência</strong></div>
+      <div class="index-item"><b>03 / PRÁTICA</b><strong>Casos, labs e relatórios</strong></div>
+      <div class="index-item"><b>04 / TURMA</b><strong>Mentoria e revisão humana</strong></div>
+    </div>
+    <section id="biblioteca" class="wrap section">
+      <div class="section-head">
+        <div>
+          <div class="kicker">Biblioteca aberta</div>
+          <h2>Comece pelo que é útil hoje.</h2>
+        </div>
+        <p class="section-lead">Materiais curtos para orientar os primeiros passos e ajudar você a entender se a área
+          faz sentido para sua carreira. Sem conta, sem promessa vazia.</p>
+      </div>
+      <div class="content-list">
+        <article class="content-row">
+          <div class="number">01</div>
+          <div>
+            <h3>Mapa de estudos para sua primeira vaga</h3>
+            <p>Um roteiro de 90 dias para organizar fundamentos, projetos e candidatura.</p>
+          </div><span class="status">ABERTO</span>
+        </article>
+        <article class="content-row">
+          <div class="number">02</div>
+          <div>
+            <h3>Checklist de hardening para Windows</h3>
+            <p>Uma lista prática para revisar configurações essenciais de um ambiente.</p>
+          </div><span class="status">ABERTO</span>
+        </article>
+        <article class="content-row">
+          <div class="number">03</div>
+          <div>
+            <h3>Leitura de log: o que merece investigação?</h3>
+            <p>Exercício inicial de análise de evidências para quem quer seguir em defesa.</p>
+          </div><span class="status">EM PREPARO</span>
+        </article>
+      </div>
+    </section>
+    <section id="trilhas" class="section route">
+      <div class="wrap">
+        <div class="kicker">Trilhas de formação</div>
+        <h2>Uma sequência pensada para o trabalho real.</h2>
+        <div class="route-grid">
+          <article class="route-card"><b>TRILHA 01</b>
+            <h3>Fundamentos</h3>
+            <p>Para quem está construindo o vocabulário e o raciocínio da área.</p>
+            <ul>
+              <li>Linux e redes</li>
+              <li>Fundamentos de segurança</li>
+              <li>Carreira e portfólio</li>
+            </ul>
+          </article>
+          <article class="route-card"><b>TRILHA 02</b>
+            <h3>Blue Team</h3>
+            <p>Para quem quer detectar, analisar e responder a incidentes.</p>
+            <ul>
+              <li>Logs e telemetria</li>
+              <li>SIEM e investigação</li>
+              <li>Relatório de incidente</li>
+            </ul>
+          </article>
+          <article class="route-card"><b>TRILHA 03</b>
+            <h3>Cloud & GRC</h3>
+            <p>Para quem quer atuar em ambientes modernos e decisões de risco.</p>
+            <ul>
+              <li>Controles em cloud</li>
+              <li>Gestão de risco</li>
+              <li>Segurança aplicada</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+    <section id="pratica" class="wrap section practice">
+      <div>
+        <div class="kicker">Método MentoCyber</div>
+        <h2>Aprender é<br>conseguir <em>agir.</em></h2>
+        <p class="section-lead">O foco não é completar telas. É entender o cenário, formular uma hipótese, registrar
+          evidências e comunicar uma decisão técnica de forma responsável.</p>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <div class="step-no">01</div>
+          <div>
+            <h3>Contexto</h3>
+            <p>Você recebe um cenário, limites e objetivos claros antes de tocar em qualquer ferramenta.</p>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-no">02</div>
+          <div>
+            <h3>Investigação</h3>
+            <p>O lab apresenta pistas e checkpoints para você construir uma linha de raciocínio.</p>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-no">03</div>
+          <div>
+            <h3>Entrega</h3>
+            <p>Você registra decisões, evidências e próximos passos em um relatório simples e objetivo.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+    <section id="turmas" class="wrap section">
+      <div class="section-head">
+        <div>
+          <div class="kicker">Acesso</div>
+          <h2>Comece aberto. Avance em turma.</h2>
+        </div>
+        <p class="section-lead">A primeira versão da MentoCyber é propositalmente simples: conteúdo aberto para explorar
+          e turmas pequenas para quem precisa de acompanhamento.</p>
+      </div>
+      <div class="offer">
+        <article class="offer-card">
+          <div class="eyebrow">BIBLIOTECA</div>
+          <h3>Explorar</h3>
+          <p>Para reconhecer a rota e estudar no seu ritmo.</p>
+          <ul>
+            <li>Roadmaps e checklists</li>
+            <li>Exercícios de base</li>
+            <li>Novos materiais por e-mail</li>
+          </ul><a class="outline" href="#acesso">Quero começar</a>
+        </article>
+        <article class="offer-card featured">
+          <div class="eyebrow">PRIMEIRA TURMA</div>
+          <h3>Mentoria prática</h3>
+          <p>Para aplicar a trilha com encontros ao vivo e revisão de entregas.</p>
+          <ul>
+            <li>Encontros em grupo</li>
+            <li>Casos e desafios semanais</li>
+            <li>Comunidade e feedback</li>
+          </ul><a class="action" href="#acesso">Entrar na lista de interesse</a>
+        </article>
+      </div>
+    </section>
+    <section id="acesso" class="closing">
+      <div class="wrap">
+        <div class="kicker" style="color:#ffe0bd">COMEÇO RESPONSÁVEL</div>
+        <h2>Construa uma carreira que sabe justificar cada decisão.</h2>
+        <p>Receba os primeiros conteúdos da MentoCyber e o aviso quando a primeira turma abrir.</p><a class="action"
+          href="mailto:contato@mentocyber.com?subject=Lista%20de%20interesse%20-%20MentoCyber">Quero entrar na lista</a>
+      </div>
+    </section>
   </main>
-  <footer class="footer"><div class="wrap" style="width:100%;display:flex;justify-content:space-between;align-items:center"><span class="brand">MENTO<span>CYBER</span></span><span>Formação responsável para defesa digital.</span></div></footer>
+  <footer class="footer">
+    <div class="wrap" style="width:100%;display:flex;justify-content:space-between;align-items:center">
+      <span class="brand">MENTO<span>CYBER</span></span><span>Formação responsável para defesa digital.</span></div>
+  </footer>
 </body>
+
 </html>
