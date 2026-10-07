@@ -28,7 +28,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { labSimulation, type Lab } from "../../features/labs/catalog";
+import { labChallenge, labSimulation, type Lab } from "../../features/labs/catalog";
 
 type DesktopApp = "desktop" | "files" | "terminal" | "splunk" | "objective";
 
@@ -37,6 +37,7 @@ const actionLabels: Record<string, string> = {
   "files.open": "Abrir um artefato do caso",
   "terminal.inspect": "Inspecionar dados no terminal",
   "splunk.search": "Consultar os eventos no Splunk",
+  "challenge.solve": "Validar a conclusão do cenário",
 };
 
 const safeCommands = [
@@ -54,16 +55,21 @@ export function LabDesktop({
   completedActions,
   onAction,
   onComplete,
+  onSolveChallenge,
   completing,
+  challengeSolved,
 }: {
   lab: Lab;
   active: boolean;
   completedActions: string[];
   onAction: (actionId: string) => void;
   onComplete: () => void;
+  onSolveChallenge: (answer: string) => void;
   completing: boolean;
+  challengeSolved: boolean;
 }) {
   const simulation = labSimulation(lab);
+  const challenge = labChallenge(lab);
   const desktopRef = useRef<HTMLElement>(null);
   const [app, setApp] = useState<DesktopApp>("desktop");
   const [booted, setBooted] = useState(false);
@@ -85,6 +91,7 @@ export function LabDesktop({
   ]);
   const [query, setQuery] = useState("index=lab sourcetype=auth_logs");
   const [queryRan, setQueryRan] = useState(false);
+  const [challengeAnswer, setChallengeAnswer] = useState("");
 
   const done = (id: string) => completedActions.includes(id);
   const progress = simulation.requiredActions.filter(done).length;
@@ -159,6 +166,12 @@ export function LabDesktop({
     event.preventDefault();
     setQueryRan(true);
     record("splunk.search");
+  };
+
+  const submitChallenge = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (challengeAnswer.trim().length < 3 || challengeSolved) return;
+    onSolveChallenge(challengeAnswer.trim());
   };
 
   useEffect(() => {
@@ -494,6 +507,22 @@ export function LabDesktop({
                         </li>
                       ))}
                     </ol>
+                    <form className="kali-challenge" onSubmit={submitChallenge}>
+                      <p>CONFIRMAÇÃO DE DIAGNÓSTICO</p>
+                      <strong>{challenge.prompt}</strong>
+                      <span>Dica: {challenge.hint}</span>
+                      <div>
+                        <input
+                          disabled={challengeSolved}
+                          onChange={(event) => setChallengeAnswer(event.target.value)}
+                          placeholder={challenge.placeholder}
+                          value={challengeAnswer}
+                        />
+                        <button disabled={challengeSolved} type="submit">
+                          {challengeSolved ? "Conclusão validada" : "Validar"}
+                        </button>
+                      </div>
+                    </form>
                     <button
                       disabled={!canComplete || completing}
                       onClick={onComplete}

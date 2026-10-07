@@ -8,6 +8,7 @@ import {
   completeLab,
   getLabProgress,
   recordLabSimulationAction,
+  solveLabChallenge,
   startLab,
   type LabProgressStatus,
 } from "../../features/labs/lab-progress";
@@ -21,6 +22,7 @@ export function LabWorkspace({ lab }: { lab: Lab }) {
   const [member, setMember] = useState<CommunityMember | null>(null);
   const [status, setStatus] = useState<LabProgressStatus | "new">("new");
   const [simulationActions, setSimulationActions] = useState<string[]>([]);
+  const [challengeSolved, setChallengeSolved] = useState(false);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -31,6 +33,7 @@ export function LabWorkspace({ lab }: { lab: Lab }) {
         if (!next) {
           setStatus("new");
           setSimulationActions([]);
+          setChallengeSolved(false);
           return;
         }
         getLabProgress(next.uid)
@@ -38,6 +41,7 @@ export function LabWorkspace({ lab }: { lab: Lab }) {
             const progress = items.find((item) => item.labId === lab.id);
             setStatus(progress?.status || "new");
             setSimulationActions(progress?.simulationActions || []);
+            setChallengeSolved(Boolean(progress?.challengeSolved));
           })
           .catch(() => setNotice("Não foi possível carregar seu estado neste lab."));
       }),
@@ -89,6 +93,24 @@ export function LabWorkspace({ lab }: { lab: Lab }) {
       );
     } finally {
       setPending(false);
+    }
+  }
+
+  async function solveChallenge(answer: string) {
+    setNotice("");
+    try {
+      await solveLabChallenge(lab.id, answer);
+      setChallengeSolved(true);
+      setSimulationActions((current) =>
+        current.includes("challenge.solve") ? current : [...current, "challenge.solve"],
+      );
+      setNotice("Conclusão validada. Você já pode finalizar a operação.");
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível validar a conclusão agora.",
+      );
     }
   }
 
@@ -159,6 +181,8 @@ export function LabWorkspace({ lab }: { lab: Lab }) {
         lab={lab}
         onAction={recordAction}
         onComplete={finishLab}
+        onSolveChallenge={solveChallenge}
+        challengeSolved={challengeSolved}
       />
       {!member ? (
         <section className="lab-callout">

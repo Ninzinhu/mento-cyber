@@ -2,6 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "../../lib/firebase-admin";
 import { getLabById, labSimulation } from "../../features/labs/catalog";
+import { validatesLabChallenge } from "../../features/labs/lab-challenge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -305,6 +306,7 @@ export async function POST(request: Request) {
             simulationActions: Array.isArray(existing.data()?.simulationActions)
               ? existing.data()!.simulationActions
               : [],
+            challengeSolved: Boolean(existing.data()?.challengeSolved),
             startedAt: existing.data()?.startedAt || FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           },
@@ -379,6 +381,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    if (action === "lab.challenge.solve") {
+      const lab = getLabById(text(payload.labId, 64));
+      const answer = text(payload.answer, 180);
+      if (!lab || lab.status !== "open") return error("Lab indisponível.", 404);
+      if (answer.length < 3) return error("Registre uma resposta antes de validar.");
+      if (!validatesLabChallenge(lab.id, answer)) {
+        return error(
+          "Ainda não é essa a conclusão. Revise os artefatos e tente novamente.",
+        );
+      }
+      const progressRef = db.collection("labProgress").doc(`${uid}_${lab.id}`);
+      const progress = await progressRef.get();
+      if (progress.data()?.status !== "active")
+        return error("Inicie o lab antes de validar a conclusão.");
+      await progressRef.update({
+        challengeSolved: true,
+        simulationActions: FieldValue.arrayUnion("challenge.solve"),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return NextResponse.json({ ok: true });
+    }
+
     if (action === "lab.complete") {
       const lab = getLabById(text(payload.labId, 64));
       if (!lab || lab.status !== "open") return error("Lab indisponível.", 404);
@@ -401,6 +425,8 @@ export async function POST(request: Request) {
           throw new Error(
             "Conclua os objetivos técnicos da estação antes de finalizar.",
           );
+        if (!progress.challengeSolved)
+          throw new Error("Valide a conclusão do cenário antes de finalizar.");
         const profile = profileSnapshot.data()!;
         const completedLabs = new Set(array(profile.completedLabIds, 100));
         completedLabs.add(lab.id);

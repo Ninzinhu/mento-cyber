@@ -12,6 +12,7 @@ export type LabProgress = {
   evidenceCount: number;
   completedSteps: string[];
   simulationActions: string[];
+  challengeSolved: boolean;
 };
 
 export async function getLabProgress(uid: string) {
@@ -46,6 +47,7 @@ export async function getLabProgress(uid: string) {
               (action: unknown): action is string => typeof action === "string",
             )
         : [],
+      challengeSolved: Boolean(item.data().challengeSolved),
     }),
   );
 }
@@ -60,6 +62,9 @@ export async function saveLabChecklist(labId: string, completedSteps: string[]) 
 }
 export async function recordLabSimulationAction(labId: string, actionId: string) {
   await communityAction("lab.simulation.action", { labId, actionId });
+}
+export async function solveLabChallenge(labId: string, answer: string) {
+  await communityAction("lab.challenge.solve", { labId, answer });
 }
 export async function completeLab(labId: string) {
   return communityAction<{ xp: number }>("lab.complete", { labId });

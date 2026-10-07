@@ -7983,6 +7983,64 @@ button:focus-visible {
   cursor: not-allowed;
   opacity: 0.45;
 }
+.kali-challenge {
+  display: grid;
+  max-width: 610px;
+  gap: 7px;
+  margin: 0 0 18px;
+  padding: 13px;
+  border: 1px solid #56658e;
+  background: #10131d;
+}
+.kali-challenge > p {
+  margin: 0;
+  color: #aebdf1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+}
+.kali-challenge > strong {
+  color: #eff1f8;
+  font-size: 0.75rem;
+}
+.kali-challenge > span {
+  color: #aab2c8;
+  font-size: 0.68rem;
+}
+.kali-challenge > div {
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
+}
+.kali-challenge input {
+  min-width: 0;
+  flex: 1;
+  padding: 8px 9px;
+  border: 1px solid #505b7c;
+  border-radius: 2px;
+  background: #090b11;
+  color: #f6f7fb;
+  font:
+    0.69rem ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+.kali-challenge button {
+  padding: 8px 11px;
+  border: 1px solid #bdc8f3;
+  border-radius: 2px;
+  background: #d9e0f8;
+  color: #161925;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.kali-challenge button:disabled,
+.kali-challenge input:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
 @media (max-width: 680px) {
   .kali-topbar > p {
     display: none;

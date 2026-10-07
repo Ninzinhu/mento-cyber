@@ -1,6 +1,11 @@
 export type LabDifficulty = "Fundamentos" | "Intermediário" | "Avançado";
 export type LabCategory = "Detecção" | "Web" | "Forense" | "OSINT" | "Redes" | "Cloud";
 export type LabArtifact = { label: string; title: string; content: string };
+export type LabChallenge = {
+  prompt: string;
+  placeholder: string;
+  hint: string;
+};
 
 export type Lab = {
   id: string;
@@ -396,6 +401,200 @@ export const labs: Lab[] = [
       "Que contexto você adicionaria, como mediria a melhora e qual risco residual permaneceria?",
     status: "open",
   },
+  {
+    id: "proxy-shadow",
+    slug: "sombra-no-proxy",
+    title: "Sombra no proxy",
+    category: "Detecção",
+    difficulty: "Intermediário",
+    duration: "45 min",
+    summary: "Encontre uma transferência fora do padrão em telemetria web sintética.",
+    scenario:
+      "O time de SOC recebeu um recorte de logs de proxy de uma organização fictícia. Há tráfego legítimo de atualização misturado com uma transferência que merece validação.",
+    objective:
+      "Diferenciar atualização esperada de download incomum e registrar a primeira pergunta de escopo.",
+    deliverable:
+      "Nota de triagem com o comportamento priorizado e o dado de confirmação.",
+    safety:
+      "Analise somente os logs locais disponibilizados. Nenhum URL, domínio ou arquivo deste lab existe fora da simulação.",
+    prerequisites: ["signal-triage"],
+    checklist: [
+      "Leia o recorte do proxy",
+      "Compare volume e horário",
+      "Priorize o desvio",
+      "Registre a pergunta de escopo",
+    ],
+    artifacts: [
+      {
+        label: "PROXY 01",
+        title: "Atualização esperada",
+        content:
+          "09:02 · workstation-11 · atualização aprovada · 18 MB · janela de manutenção",
+      },
+      {
+        label: "PROXY 02",
+        title: "Transferência fora do padrão",
+        content:
+          "09:07 · workstation-17 · download incomum · 242 MB · sem ticket associado",
+      },
+      {
+        label: "PROXY 03",
+        title: "Navegação operacional",
+        content:
+          "09:09 · workstation-17 · portal interno fictício · 36 KB · acesso habitual",
+      },
+    ],
+    visual: "triage",
+    evidencePrompt:
+      "Que transferência você priorizaria, qual contexto falta e qual fonte local ajudaria a confirmar o escopo?",
+    status: "open",
+    xp: 170,
+  },
+  {
+    id: "inbox-quarantine",
+    slug: "caixa-de-entrada-em-quarentena",
+    title: "Caixa de entrada em quarentena",
+    category: "Detecção",
+    difficulty: "Fundamentos",
+    duration: "35 min",
+    summary:
+      "Faça triagem de uma mensagem suspeita usando cabeçalhos totalmente fictícios.",
+    scenario:
+      "Uma caixa de quarentena de demonstração contém um pedido de alteração cadastral. O conteúdo é inofensivo; a investigação é sobre sinais de autenticidade e contexto.",
+    objective:
+      "Decidir se a mensagem deve permanecer isolada e indicar a justificativa mais forte.",
+    deliverable: "Decisão de quarentena com um sinal observado e uma ação segura.",
+    safety:
+      "Não responda, encaminhe, abra links ou pesquise remetentes reais. A mensagem é estática e criada para treinamento.",
+    prerequisites: ["signal-triage"],
+    checklist: [
+      "Leia o cabeçalho simulado",
+      "Compare remetente e domínio",
+      "Identifique o sinal de risco",
+      "Escolha uma ação segura",
+    ],
+    artifacts: [
+      {
+        label: "E-MAIL 01",
+        title: "Remetente exibido",
+        content: "Financeiro MentoLabs <financeiro@mentolabs.example>",
+      },
+      {
+        label: "E-MAIL 02",
+        title: "Return-Path",
+        content:
+          "<financeiro@mentolabs-support.example> · domínio semelhante ao exibido",
+      },
+      {
+        label: "E-MAIL 03",
+        title: "Contexto da solicitação",
+        content:
+          "Pedido fora do fluxo habitual e sem número de chamado de demonstração",
+      },
+    ],
+    visual: "source",
+    evidencePrompt:
+      "Qual sinal sustenta manter a mensagem em quarentena e qual canal seguro você usaria para validar a solicitação?",
+    status: "open",
+    xp: 130,
+  },
+  {
+    id: "endpoint-drift",
+    slug: "desvio-no-endpoint",
+    title: "Desvio no endpoint",
+    category: "Forense",
+    difficulty: "Intermediário",
+    duration: "55 min",
+    summary:
+      "Reconstrua uma sequência de endpoint a partir de eventos sintéticos de operação.",
+    scenario:
+      "A telemetria de endpoint de um parque fictício registra uma sequência fora da janela de manutenção. O objetivo é decidir qual estação requer contenção antes de qualquer hipótese de causa.",
+    objective:
+      "Identificar o endpoint prioritário e separar o que é fato do que ainda precisa de coleta.",
+    deliverable:
+      "Recomendação de contenção com o endpoint, a evidência e a lacuna principal.",
+    safety:
+      "Não há binários, memória, hosts ou endpoints reais neste cenário. Trabalhe apenas com as evidências apresentadas.",
+    prerequisites: ["timeline-reconstruction", "proxy-shadow"],
+    checklist: [
+      "Ordene os eventos",
+      "Localize a estação prioritária",
+      "Separe fato de hipótese",
+      "Defina a contenção proporcional",
+    ],
+    artifacts: [
+      {
+        label: "ENDPOINT 01",
+        title: "Execução fora de janela",
+        content:
+          "22:14 · workstation-17 · processo de manutenção simulado iniciado fora da janela aprovada",
+      },
+      {
+        label: "ENDPOINT 02",
+        title: "Alteração de contexto",
+        content:
+          "22:16 · workstation-17 · tarefa de teste criada sem ticket correlacionado",
+      },
+      {
+        label: "ENDPOINT 03",
+        title: "Telemetria complementar",
+        content:
+          "22:18 · workstation-08 · rotina aprovada concluída durante manutenção",
+      },
+    ],
+    visual: "timeline",
+    evidencePrompt:
+      "Qual endpoint deve ser contido primeiro, qual evento sustenta a decisão e que evidência ainda falta?",
+    status: "open",
+    xp: 190,
+  },
+  {
+    id: "service-key-review",
+    slug: "revisao-de-chave-de-servico",
+    title: "Revisão de chave de serviço",
+    category: "Cloud",
+    difficulty: "Avançado",
+    duration: "60 min",
+    summary:
+      "Conduza a primeira resposta a uma credencial de demonstração exposta em log.",
+    scenario:
+      "Um coletor de logs fictício detectou uma credencial de serviço redigida em uma saída de automação. A prática foca em contenção, rotação e redução de exposição, não em uso de credenciais.",
+    objective:
+      "Definir a primeira medida de contenção e a sequência mínima de verificação para o proprietário do serviço.",
+    deliverable:
+      "Plano curto de resposta: contenção imediata, validação de uso e acompanhamento.",
+    safety:
+      "A chave é fictícia e inutilizável. Não use, crie, teste ou procure credenciais reais fora deste ambiente.",
+    prerequisites: ["cloud-access-review", "evidence-report"],
+    checklist: [
+      "Classifique a exposição",
+      "Escolha a contenção imediata",
+      "Defina a validação de uso",
+      "Registre o acompanhamento",
+    ],
+    artifacts: [
+      {
+        label: "AUDIT 01",
+        title: "Detecção de segredo",
+        content: "13:03 · pipeline-demo · padrão de chave redigido em saída de teste",
+      },
+      {
+        label: "AUDIT 02",
+        title: "Uso mais recente",
+        content: "12:41 · service-reporting-demo · leitura de relatório permitida",
+      },
+      {
+        label: "AUDIT 03",
+        title: "Escopo declarado",
+        content: "A identidade de serviço só precisa consultar relatórios sintéticos",
+      },
+    ],
+    visual: "cloud",
+    evidencePrompt:
+      "Que medida vem primeiro, como validar impacto e qual mudança reduz a exposição futura?",
+    status: "open",
+    xp: 240,
+  },
 ];
 
 export function getLab(slug: string) {
@@ -419,6 +618,83 @@ export function labSimulation(lab: Lab) {
       "files.open",
       "terminal.inspect",
       "splunk.search",
+      "challenge.solve",
     ],
   };
+}
+
+const challenges: Record<string, LabChallenge> = {
+  "signal-triage": {
+    prompt: "Qual estação concentra as tentativas recusadas que merecem triagem?",
+    placeholder: "Informe o identificador da estação",
+    hint: "Compare a origem dos eventos de autenticação.",
+  },
+  "web-session-review": {
+    prompt: "Que controle precisa ser confirmado antes de permitir a troca de e-mail?",
+    placeholder: "Descreva o controle de sessão",
+    hint: "Leia a nota sobre o fluxo de troca.",
+  },
+  "timeline-reconstruction": {
+    prompt: "Qual ocorrência registrada explica a principal lacuna na linha do tempo?",
+    placeholder: "Descreva o evento incerto",
+    hint: "Busque a observação que não tem confirmação posterior.",
+  },
+  "source-validation": {
+    prompt: "Qual fonte deve ficar fora do relatório por não ter origem nem data?",
+    placeholder: "Informe a fonte",
+    hint: "Procure a captura sem contexto.",
+  },
+  "network-segmentation": {
+    prompt: "Qual zona deve ter o fluxo revisado primeiro para reduzir exposição?",
+    placeholder: "Informe a zona",
+    hint: "Observe onde estão as estações e o coletor interno.",
+  },
+  "cloud-access-review": {
+    prompt: "Qual princípio deve guiar a redução da permissão ampla?",
+    placeholder: "Informe o princípio de acesso",
+    hint: "A atividade declarada é apenas de consulta.",
+  },
+  "evidence-report": {
+    prompt:
+      "Qual elemento obrigatório impede que uma observação vire conclusão exagerada?",
+    placeholder: "Informe o elemento do relato",
+    hint: "O relato deve declarar o que ainda não é conhecido.",
+  },
+  "alert-quality": {
+    prompt:
+      "Qual contexto de mudança deve ser correlacionado antes de reduzir o alerta?",
+    placeholder: "Informe o contexto necessário",
+    hint: "Os alertas recorrentes coincidem com uma atividade planejada.",
+  },
+  "proxy-shadow": {
+    prompt: "Qual comportamento no proxy deve ser priorizado para investigação?",
+    placeholder: "Descreva o comportamento observado",
+    hint: "Compare o volume e o tipo de transferência com o padrão do caso.",
+  },
+  "inbox-quarantine": {
+    prompt: "Qual sinal no remetente justifica manter a mensagem em quarentena?",
+    placeholder: "Descreva o sinal do remetente",
+    hint: "Compare o domínio exibido com o domínio informado no cabeçalho.",
+  },
+  "endpoint-drift": {
+    prompt:
+      "Qual endpoint concentra o encadeamento de eventos que precisa de contenção?",
+    placeholder: "Informe o nome do endpoint",
+    hint: "A sequência começa com uma execução fora do horário de manutenção.",
+  },
+  "service-key-review": {
+    prompt: "Qual é a primeira medida para uma chave de serviço exposta em log?",
+    placeholder: "Descreva a medida imediata",
+    hint: "Reduzir privilégio não resolve uma credencial já exposta.",
+  },
+};
+
+export function labChallenge(lab: Lab): LabChallenge {
+  return (
+    challenges[lab.id] || {
+      prompt: "Qual evidência você priorizaria neste cenário?",
+      placeholder: "Registre sua conclusão",
+      hint: "Use apenas os artefatos fornecidos.",
+    }
+  );
 }
