@@ -189,6 +189,10 @@ export function ContentCard({ post }: { post: ContentPost }) {
         ? `/artigos/${post.slug}`
         : `/noticias/${post.slug}`;
   const [imageFailed, setImageFailed] = useState(false);
+  const fallbackImage = `/api/noticias/arte?source=${encodeURIComponent(
+    post.sourceName || contentLabel(post.kind),
+  )}&title=${encodeURIComponent(post.title)}`;
+  const imageSource = post.imageUrl && !imageFailed ? post.imageUrl : fallbackImage;
   const openPost = () => {
     window.location.assign(href);
   };
@@ -208,16 +212,14 @@ export function ContentCard({ post }: { post: ContentPost }) {
       tabIndex={0}
     >
       <div className="content-card-image" aria-hidden="true">
-        {post.imageUrl && !imageFailed ? (
-          <img
-            alt=""
-            loading="lazy"
-            onError={() => setImageFailed(true)}
-            src={post.imageUrl}
-          />
-        ) : (
-          <span>{post.sourceName || contentLabel(post.kind)}</span>
-        )}
+        <img
+          alt=""
+          loading="lazy"
+          onError={() => {
+            if (post.imageUrl && !imageFailed) setImageFailed(true);
+          }}
+          src={imageSource}
+        />
       </div>
       <div className="content-card-kind">
         {iconFor(post.kind)}

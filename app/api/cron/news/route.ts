@@ -160,6 +160,26 @@ type FeedItem = {
 };
 
 function decode(value: string) {
+  const namedEntities: Record<string, string> = {
+    aacute: "á",
+    agrave: "à",
+    acirc: "â",
+    atilde: "ã",
+    ccedil: "ç",
+    eacute: "é",
+    ecirc: "ê",
+    iacute: "í",
+    oacute: "ó",
+    ocirc: "ô",
+    otilde: "õ",
+    uacute: "ú",
+    ldquo: "“",
+    rdquo: "”",
+    lsquo: "‘",
+    rsquo: "’",
+    ndash: "–",
+    mdash: "—",
+  };
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/<[^>]+>/g, " ")
@@ -172,6 +192,10 @@ function decode(value: string) {
     .replace(/&hellip;/g, "…")
     .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
     .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(
+      /&([a-z]+);/gi,
+      (entity, name) => namedEntities[name.toLowerCase()] || entity,
+    )
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -239,6 +263,17 @@ function articleImage(html: string) {
     )
     .sort((first, second) => second.score - first.score);
   return candidates[0]?.url;
+}
+
+function allowsPageImageFallback(url: string) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return (
+      hostname === "cisoadvisor.com.br" || hostname.endsWith(".cisoadvisor.com.br")
+    );
+  } catch {
+    return false;
+  }
 }
 
 function articleLead(html: string) {
@@ -309,7 +344,7 @@ async function enrichFromSource(item: FeedItem) {
           "href",
         ),
       ) ||
-      articleImage(html) ||
+      (allowsPageImageFallback(item.url) ? articleImage(html) : undefined) ||
       item.imageUrl;
     const description = decode(
       metaContent(html, "og:description") || metaContent(html, "description"),
@@ -442,11 +477,9 @@ export async function GET(request: Request) {
       {
         ref: item.ref,
         needsEnrichment:
-          (!item.data().imageUrl &&
-            (forceImageRefresh || !item.data().imageCheckedAt)) ||
-          (forceContextRefresh &&
-            String(item.data().body || "").length < 700 &&
-            !item.data().contextCheckedAt),
+          forceImageRefresh ||
+          (!item.data().imageUrl && !item.data().imageCheckedAt) ||
+          (forceContextRefresh && String(item.data().body || "").length < 700),
       },
     ]),
   );

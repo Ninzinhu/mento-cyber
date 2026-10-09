@@ -39,6 +39,7 @@ export function ContentDetail({
     excerpt: string;
   } | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => {
     getContentPosts().then((items) => {
       const current =
@@ -49,6 +50,7 @@ export function ContentDetail({
             (!newsOnly || item.kind === "radar"),
         ) || null;
       setPost(current);
+      setImageFailed(false);
       if (current) getContentComments(current.id).then(setComments);
     });
     return observeCommunityMember((member) => setSignedIn(Boolean(member)));
@@ -96,6 +98,10 @@ export function ContentDetail({
         <p className="content-empty">Carregando conteúdo ou item não encontrado.</p>
       </main>
     );
+  const fallbackImage = `/api/noticias/arte?source=${encodeURIComponent(
+    post.sourceName || contentLabel(post.kind),
+  )}&title=${encodeURIComponent(post.title)}`;
+  const imageSource = post.imageUrl && !imageFailed ? post.imageUrl : fallbackImage;
   return (
     <main className="content-page">
       <ContentNav />
@@ -111,11 +117,15 @@ export function ContentDetail({
         >
           ← Voltar
         </Link>
-        {post.imageUrl && (
-          <div className="content-detail-image">
-            <img alt="" src={post.imageUrl} />
-          </div>
-        )}
+        <div className="content-detail-image" aria-hidden="true">
+          <img
+            alt=""
+            onError={() => {
+              if (post.imageUrl && !imageFailed) setImageFailed(true);
+            }}
+            src={imageSource}
+          />
+        </div>
         <p className="auth-eyebrow">{contentLabel(post.kind).toUpperCase()}</p>
         <h1>{translation?.title || post.title}</h1>
         <div className="content-detail-meta">
