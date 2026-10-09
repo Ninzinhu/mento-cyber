@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, type DocumentReference } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../lib/firebase-admin";
 
@@ -116,12 +116,6 @@ const feeds: Feed[] = [
     tags: ["Segurança", "Pesquisa"],
     region: "Brasil",
   },
-  {
-    name: "Security Report",
-    url: "https://securityreport.com.br/feed/",
-    tags: ["Segurança", "Incidentes"],
-    region: "Brasil",
-  },
 ];
 
 const topicTerms = [
@@ -160,6 +154,7 @@ type FeedItem = {
   title: string;
   url: string;
   excerpt: string;
+  body: string;
   imageUrl?: string;
   publishedAt: string;
 };
@@ -199,6 +194,83 @@ function imageFrom(block: string) {
   );
 }
 
+function metaContent(html: string, property: string) {
+  const escaped = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const patterns = [
+    new RegExp(
+      `<meta[^>]+(?:property|name)=["']${escaped}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+      "i",
+    ),
+    new RegExp(
+      `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${escaped}["'][^>]*>`,
+      "i",
+    ),
+  ];
+  return patterns.map((pattern) => pattern.exec(html)?.[1] || "").find(Boolean) || "";
+}
+
+function trustedArticleUrl(value: string) {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+    const trusted = [
+      "cisa.gov",
+      "bleepingcomputer.com",
+      "krebsonsecurity.com",
+      "googleblog.com",
+      "thehackernews.com",
+      "securityweek.com",
+      "darkreading.com",
+      "therecord.media",
+      "malwarebytes.com",
+      "cloudflare.com",
+      "talosintelligence.com",
+      "paloaltonetworks.com",
+      "tecnoblog.net",
+      "canaltech.com.br",
+      "olhardigital.com.br",
+      "tecmundo.com.br",
+      "cisoadvisor.com.br",
+      "securityreport.com.br",
+    ];
+    return (
+      url.protocol === "https:" &&
+      trusted.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function enrichFromSource(item: FeedItem) {
+  if (!trustedArticleUrl(item.url)) return item;
+  try {
+    const response = await fetch(item.url, {
+      headers: { "User-Agent": "MentoCyber-News/1.0 (+https://mentocyber.com)" },
+      signal: AbortSignal.timeout(7_000),
+      next: { revalidate: 0 },
+    });
+    if (!response.ok || !response.headers.get("content-type")?.includes("text/html"))
+      return item;
+    const html = (await response.text()).slice(0, 350_000);
+    const imageUrl =
+      urlAttribute(metaContent(html, "og:image"), /^(https:\/\/[^\s]+)$/i) ||
+      urlAttribute(metaContent(html, "twitter:image"), /^(https:\/\/[^\s]+)$/i) ||
+      item.imageUrl;
+    const description = decode(
+      metaContent(html, "og:description") || metaContent(html, "description"),
+    ).slice(0, 1_600);
+    return {
+      ...item,
+      imageUrl,
+      excerpt: description || item.excerpt,
+      body: description || item.body,
+    };
+  } catch {
+    return item;
+  }
+}
+
 function valueOf(block: string, tag: string) {
   const match = block.match(
     new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"),
@@ -217,6 +289,7 @@ function entries(xml: string, feed: Feed): FeedItem[] {
       const excerpt =
         valueOf(block, "description") ||
         valueOf(block, "summary") ||
+        valueOf(block, "content:encoded") ||
         valueOf(block, "content");
       const date =
         valueOf(block, "pubDate") ||
@@ -225,7 +298,8 @@ function entries(xml: string, feed: Feed): FeedItem[] {
       return {
         title: title.slice(0, 180),
         url,
-        excerpt: excerpt.slice(0, 420),
+        excerpt: excerpt.slice(0, 560),
+        body: excerpt.slice(0, 1_600),
         imageUrl: imageFrom(block),
         publishedAt: Number.isNaN(Date.parse(date))
           ? new Date().toISOString()
@@ -299,13 +373,24 @@ export async function GET(request: Request) {
     .where("kind", "==", "radar")
     .limit(600)
     .get();
-  const knownUrls = new Set(
-    existing.docs.map((item) => canonicalUrl(String(item.data().sourceUrl || ""))),
+  const existingByUrl = new Map<
+    string,
+    { ref: DocumentReference; needsImageEnrichment: boolean }
+  >(
+    existing.docs.map((item) => [
+      canonicalUrl(String(item.data().sourceUrl || "")),
+      {
+        ref: item.ref,
+        needsImageEnrichment: !item.data().imageUrl && !item.data().imageCheckedAt,
+      },
+    ]),
   );
+  const knownUrls = new Set(existingByUrl.keys());
   const knownTitles = new Set(
     existing.docs.map((item) => canonicalTitle(String(item.data().title || ""))),
   );
   const imported = [] as Array<{ source: string; imported: number; skipped: number }>;
+  const enrichments: Array<{ ref: DocumentReference; item: FeedItem }> = [];
   for (const result of results) {
     if (result.status !== "fulfilled") continue;
     const { feed, items } = result.value;
@@ -314,38 +399,65 @@ export async function GET(request: Request) {
     for (const item of items) {
       const sourceUrl = canonicalUrl(item.url);
       const titleKey = canonicalTitle(item.title);
-      if (knownUrls.has(sourceUrl) || knownTitles.has(titleKey)) {
+      const existingPost = existingByUrl.get(sourceUrl);
+      if (existingPost || knownTitles.has(titleKey)) {
+        if (existingPost?.needsImageEnrichment && enrichments.length < 24)
+          enrichments.push({
+            ref: existingPost.ref,
+            item: { ...item, url: sourceUrl },
+          });
         skipped += 1;
         continue;
       }
       const id = createHash("sha256").update(sourceUrl).digest("hex").slice(0, 32);
-      await db
-        .collection("contentPosts")
-        .doc(`radar_${id}`)
-        .set({
-          kind: "radar",
-          title: item.title,
-          slug: `radar-${id}`,
-          excerpt: item.excerpt || "Leia a cobertura original na fonte indicada.",
-          tags: feed.tags,
-          region: feed.region,
-          authorName: "Notícias MentoCyber",
-          sourceName: feed.name,
-          sourceUrl,
-          imageUrl: item.imageUrl || null,
-          status: "published",
-          visibility: "public",
-          publishedAt: item.publishedAt,
-          ingestedAt: FieldValue.serverTimestamp(),
-          reactionCount: 0,
-          commentCount: 0,
-        });
+      const ref = db.collection("contentPosts").doc(`radar_${id}`);
+      await ref.set({
+        kind: "radar",
+        title: item.title,
+        slug: `radar-${id}`,
+        excerpt: item.excerpt || "Leia a cobertura original na fonte indicada.",
+        body:
+          item.body || item.excerpt || "Leia a cobertura original na fonte indicada.",
+        tags: feed.tags,
+        region: feed.region,
+        authorName: "Notícias MentoCyber",
+        sourceName: feed.name,
+        sourceUrl,
+        imageUrl: item.imageUrl || null,
+        status: "published",
+        visibility: "public",
+        publishedAt: item.publishedAt,
+        ingestedAt: FieldValue.serverTimestamp(),
+        reactionCount: 0,
+        commentCount: 0,
+      });
       knownUrls.add(sourceUrl);
       knownTitles.add(titleKey);
+      existingByUrl.set(sourceUrl, {
+        ref,
+        needsImageEnrichment: !item.imageUrl,
+      });
+      if (!item.imageUrl && enrichments.length < 24)
+        enrichments.push({ ref, item: { ...item, url: sourceUrl } });
       count += 1;
     }
     imported.push({ source: feed.name, imported: count, skipped });
   }
+  await Promise.all(
+    enrichments.map(async ({ ref, item }) => {
+      const enriched = await enrichFromSource(item);
+      await ref.set(
+        {
+          imageUrl: enriched.imageUrl || null,
+          excerpt: enriched.excerpt || item.excerpt,
+          body: enriched.body || item.body,
+          imageCheckedAt: FieldValue.serverTimestamp(),
+          enrichedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }),
+  );
   const failures = results.flatMap((result) =>
     result.status === "rejected" ? [String(result.reason)] : [],
   );

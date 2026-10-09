@@ -33,6 +33,9 @@ tecnologia passam por filtro de assunto antes da publicação.
 
 Cada item é deduplicado pela URL canônica e pelo título normalizado. O sistema
 armazena apenas os metadados e direciona o leitor à publicação original.
+Quando o RSS não fornece mídia, o coletor consulta metadados Open Graph somente
+em domínios de fontes previamente aprovadas; falhas de imagem recebem um visual
+de fallback no card.
 
 ## Tradução no site
 
