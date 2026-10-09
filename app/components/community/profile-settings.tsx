@@ -130,6 +130,16 @@ export function ProfileSettings() {
       profileVisible: formData.get("profileVisible") === "on",
       showSocialLinks: formData.get("showSocialLinks") === "on",
       showActivity: formData.get("showActivity") === "on",
+      career: {
+        headline: String(formData.get("careerHeadline") || "")
+          .trim()
+          .slice(0, 100),
+        availability: String(formData.get("careerAvailability") || "")
+          .trim()
+          .slice(0, 140),
+        certifications: listValue(formData, "careerCertifications", 8),
+        projects: listValue(formData, "careerProjects", 6),
+      },
     };
     try {
       await saveCommunityProfile(member.uid, next);
@@ -329,6 +339,59 @@ export function ProfileSettings() {
           <details className="settings-section">
             <summary>
               <span>
+                <b>04</b> Carreira e portfólio
+              </span>
+              <small>Contexto profissional público</small>
+            </summary>
+            <div className="settings-form-layout">
+              <div className="settings-identity">
+                <label>
+                  Título profissional
+                  <input
+                    name="careerHeadline"
+                    defaultValue={profile.career.headline}
+                    maxLength={100}
+                    placeholder="Ex.: Analista SOC em formação"
+                  />
+                </label>
+                <label>
+                  Disponibilidade
+                  <input
+                    name="careerAvailability"
+                    defaultValue={profile.career.availability}
+                    maxLength={140}
+                    placeholder="Ex.: Aberto a mentoria e projetos de Blue Team"
+                  />
+                </label>
+              </div>
+              <div className="settings-presence">
+                <TagPicker
+                  initialValues={profile.career.certifications}
+                  label="Certificações"
+                  name="careerCertifications"
+                  options={[
+                    "Security+",
+                    "SC-900",
+                    "AZ-900",
+                    "ISO 27001",
+                    "eJPT",
+                    "BTL1",
+                  ]}
+                  placeholder="Outra certificação + Enter"
+                />
+                <TagPicker
+                  initialValues={profile.career.projects}
+                  label="Projetos / writeups"
+                  name="careerProjects"
+                  options={[]}
+                  placeholder="Ex.: investigação de phishing M365 + Enter"
+                />
+              </div>
+            </div>
+          </details>
+          <details className="settings-section">
+            <summary>
+              <span>
                 <b>03</b> Destaques públicos
               </span>
               <small>Até três itens de cada tipo</small>
@@ -357,7 +420,7 @@ export function ProfileSettings() {
           <details className="settings-section">
             <summary>
               <span>
-                <b>04</b> Disponibilidade e privacidade
+                <b>05</b> Disponibilidade e privacidade
               </span>
               <small>Convites e visibilidade</small>
             </summary>

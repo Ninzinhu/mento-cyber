@@ -52,6 +52,12 @@ export type CommunityProfile = {
   reviewCount: number;
   xp: number;
   role: "member" | "moderator" | "admin";
+  career: {
+    headline: string;
+    availability: string;
+    certifications: string[];
+    projects: string[];
+  };
 };
 
 const emptyLinks: ProfileLinks = {
@@ -109,6 +115,24 @@ export function profileFromData(
     reviewCount: typeof data?.reviewCount === "number" ? data.reviewCount : 0,
     xp: typeof data?.xp === "number" ? data.xp : 0,
     role: data?.role === "moderator" || data?.role === "admin" ? data.role : "member",
+    career: {
+      headline:
+        typeof (data?.career as Record<string, unknown> | undefined)?.headline ===
+        "string"
+          ? String((data?.career as Record<string, unknown>).headline)
+          : "",
+      availability:
+        typeof (data?.career as Record<string, unknown> | undefined)?.availability ===
+        "string"
+          ? String((data?.career as Record<string, unknown>).availability)
+          : "",
+      certifications: stringList(
+        (data?.career as Record<string, unknown> | undefined)?.certifications,
+      ),
+      projects: stringList(
+        (data?.career as Record<string, unknown> | undefined)?.projects,
+      ),
+    },
   };
 }
 
@@ -146,6 +170,7 @@ export function publicProfileData(
     | "profileVisible"
     | "showSocialLinks"
     | "showActivity"
+    | "career"
   >,
 ) {
   return {

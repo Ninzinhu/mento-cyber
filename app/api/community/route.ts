@@ -45,6 +45,7 @@ const publicFields = [
   "profileVisible",
   "showSocialLinks",
   "showActivity",
+  "career",
 ];
 const missionIds = new Set(["caso", "sonda", "matriz"]);
 const trackIds = new Set(practiceTracks.map((track) => track.id));
@@ -170,6 +171,7 @@ export async function POST(request: Request) {
           reviewCount: 0,
           xp: 0,
           role: "member",
+          career: { headline: "", availability: "", certifications: [], projects: [] },
           createdAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         };
@@ -532,6 +534,24 @@ export async function POST(request: Request) {
         profileVisible: source.profileVisible === true,
         showSocialLinks: source.showSocialLinks === true,
         showActivity: source.showActivity === true,
+        career: {
+          headline: text(
+            (source.career as Record<string, unknown> | undefined)?.headline,
+            100,
+          ),
+          availability: text(
+            (source.career as Record<string, unknown> | undefined)?.availability,
+            140,
+          ),
+          certifications: array(
+            (source.career as Record<string, unknown> | undefined)?.certifications,
+            8,
+          ),
+          projects: array(
+            (source.career as Record<string, unknown> | undefined)?.projects,
+            6,
+          ),
+        },
         updatedAt: FieldValue.serverTimestamp(),
       };
       const currentData = current.data()!;
@@ -980,6 +1000,35 @@ export async function POST(request: Request) {
         .get();
       return NextResponse.json({
         postIds: saved.docs.map((item) => text(item.data().postId, 128)),
+      });
+    }
+
+    if (action === "community.insights") {
+      const [profile, authored, reads, saves, follows] = await Promise.all([
+        profileRef.get(),
+        db.collection("contentPosts").where("authorId", "==", uid).limit(100).get(),
+        db.collection("contentReads").where("uid", "==", uid).limit(500).get(),
+        db.collection("savedContent").where("uid", "==", uid).limit(200).get(),
+        db
+          .collection("profileFollows")
+          .where("followingId", "==", uid)
+          .limit(500)
+          .get(),
+      ]);
+      if (!profile.exists) return error("Perfil não encontrado.", 404);
+      const posts = authored.docs.map((item) => item.data());
+      return NextResponse.json({
+        xp: Number(profile.data()?.xp || 0),
+        contributionCount: Number(profile.data()?.contributionCount || 0),
+        completedLabs: array(profile.data()?.completedLabIds, 100).length,
+        published: posts.length,
+        receivedReactions: posts.reduce(
+          (total, item) => total + Number(item.reactionCount || 0),
+          0,
+        ),
+        reads: reads.size,
+        saved: saves.size,
+        followers: follows.size,
       });
     }
 

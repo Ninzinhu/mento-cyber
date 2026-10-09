@@ -110,6 +110,29 @@ export function PublicProfile({ handle }: { handle: string }) {
         <p className="public-bio">
           {profile.bio || "Praticante da comunidade MentoCyber."}
         </p>
+        {(profile.career.headline ||
+          profile.career.certifications.length > 0 ||
+          profile.career.projects.length > 0) && (
+          <section className="public-career">
+            <span>CARREIRA / PORTFÓLIO</span>
+            {profile.career.headline && <b>{profile.career.headline}</b>}
+            {profile.career.availability && <p>{profile.career.availability}</p>}
+            {profile.career.certifications.length > 0 && (
+              <div>
+                {profile.career.certifications.map((item) => (
+                  <i key={item}>{item}</i>
+                ))}
+              </div>
+            )}
+            {profile.career.projects.length > 0 && (
+              <ul>
+                {profile.career.projects.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
         {profile.specialties.length > 0 && (
           <div className="public-skill-group">
             <span>ESPECIALIDADES</span>
