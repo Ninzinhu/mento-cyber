@@ -35,6 +35,7 @@ export type ContentPost = {
   slug: string;
   excerpt: string;
   body?: string;
+  whyItMatters?: string;
   tags: string[];
   authorName: string;
   authorId?: string;
@@ -47,6 +48,8 @@ export type ContentPost = {
   readingMinutes?: number;
   reactionCount?: number;
   commentCount?: number;
+  bestCommentId?: string;
+  viewCount?: number;
   featured?: boolean;
 };
 

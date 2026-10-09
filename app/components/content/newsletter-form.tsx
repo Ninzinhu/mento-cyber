@@ -3,17 +3,19 @@
 import { FormEvent, useState } from "react";
 import { ContentNav } from "./content-hub";
 import { communityAction } from "../../features/community/server-action";
+import { contentTags } from "../../features/content/content-model";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
+  const [topics, setTopics] = useState<string[]>(["Incidentes", "Vulnerabilidades"]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
     setNotice("");
     try {
-      await communityAction("newsletter.subscribe", { email });
+      await communityAction("newsletter.subscribe", { email, topics });
       setNotice(
         "Recebemos sua inscrição. A confirmação será ativada quando o provedor de e-mail estiver conectado.",
       );
@@ -27,6 +29,15 @@ export function NewsletterForm() {
     } finally {
       setPending(false);
     }
+  }
+  function toggleTopic(topic: string) {
+    setTopics((current) =>
+      current.includes(topic)
+        ? current.filter((item) => item !== topic)
+        : current.length < 6
+          ? [...current, topic]
+          : current,
+    );
   }
   return (
     <main className="content-page">
@@ -50,13 +61,29 @@ export function NewsletterForm() {
               value={email}
             />
           </label>
+          <fieldset className="newsletter-topics">
+            <legend>Quais assuntos você quer acompanhar?</legend>
+            <div>
+              {contentTags.slice(0, 12).map((topic) => (
+                <label key={topic}>
+                  <input
+                    checked={topics.includes(topic)}
+                    onChange={() => toggleTopic(topic)}
+                    type="checkbox"
+                  />
+                  {topic}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <button disabled={pending} type="submit">
             {pending ? "Registrando…" : "Quero receber"}
           </button>
         </form>
         {notice && <p aria-live="polite">{notice}</p>}
         <small>
-          Sem spam. Você poderá sair quando o fluxo de entrega estiver conectado.
+          Preferências salvas com sua inscrição. A entrega só começa após a confirmação
+          por e-mail.
         </small>
       </section>
     </main>

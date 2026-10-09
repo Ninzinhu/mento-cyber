@@ -48,6 +48,8 @@ function serializePost(id: string, value: Record<string, unknown>): ContentPost 
     slug: String(value.slug || id),
     excerpt: String(value.excerpt || ""),
     body: typeof value.body === "string" ? value.body : undefined,
+    whyItMatters:
+      typeof value.whyItMatters === "string" ? value.whyItMatters : undefined,
     tags: Array.isArray(value.tags)
       ? value.tags.filter((tag): tag is string => typeof tag === "string")
       : [],
@@ -63,6 +65,9 @@ function serializePost(id: string, value: Record<string, unknown>): ContentPost 
     readingMinutes: Number(value.readingMinutes || 2),
     reactionCount: Number(value.reactionCount || 0),
     commentCount: Number(value.commentCount || 0),
+    bestCommentId:
+      typeof value.bestCommentId === "string" ? value.bestCommentId : undefined,
+    viewCount: Number(value.viewCount || 0),
     featured: value.featured === true,
   };
 }

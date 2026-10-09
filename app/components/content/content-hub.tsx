@@ -13,6 +13,9 @@ import {
   type ContentKind,
   type ContentPost,
 } from "../../features/content/content-model";
+import { getCommunityProfile } from "../../features/community/profile-data";
+import { observeCommunityMember } from "../../features/community/community-data";
+import { ArticleComposer } from "./article-composer";
 
 const kinds: Array<ContentKind | "all"> = ["all", "article", "discussion", "radar"];
 
@@ -36,6 +39,8 @@ export function ContentHub({
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("Todas");
   const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
+  const [interestTags, setInterestTags] = useState<string[]>([]);
 
   const refreshPosts = async () => {
     setLoading(true);
@@ -56,6 +61,23 @@ export function ContentHub({
     };
   }, []);
 
+  useEffect(
+    () =>
+      observeCommunityMember((member) => {
+        setSignedIn(Boolean(member));
+        if (!member) {
+          setInterestTags([]);
+          return;
+        }
+        void getCommunityProfile(member.uid)
+          .then((profile) =>
+            setInterestTags([...profile.specialties, ...profile.stack].slice(0, 12)),
+          )
+          .catch(() => setInterestTags([]));
+      }),
+    [],
+  );
+
   const visible = useMemo(
     () =>
       posts.filter((post) => {
@@ -69,6 +91,19 @@ export function ContentHub({
         );
       }),
     [kind, posts, region, search, tag],
+  );
+  const featured = useMemo(
+    () => posts.filter((post) => post.featured).slice(0, 3),
+    [posts],
+  );
+  const forYou = useMemo(
+    () =>
+      interestTags.length
+        ? posts
+            .filter((post) => post.tags.some((item) => interestTags.includes(item)))
+            .slice(0, 3)
+        : [],
+    [interestTags, posts],
   );
 
   return (
@@ -99,6 +134,42 @@ export function ContentHub({
           </Link>
         </div>
       </section>
+      {initialKind === "all" && signedIn && (
+        <ArticleComposer onPublished={refreshPosts} />
+      )}
+      {initialKind === "all" && !signedIn && (
+        <section className="content-signin content-write-cta">
+          <b>Tem uma leitura ou método para compartilhar?</b>
+          <Link href="/entrar">Entre para publicar um artigo →</Link>
+        </section>
+      )}
+      {(featured.length > 0 || forYou.length > 0) && initialKind === "all" && (
+        <section className="content-curation">
+          {featured.length > 0 && (
+            <div>
+              <p className="auth-eyebrow">DESTAQUES DA SEMANA</p>
+              <div className="content-curation-list">
+                {featured.map((post) => (
+                  <ContentCard key={post.id} post={post} />
+                ))}
+              </div>
+            </div>
+          )}
+          {forYou.length > 0 && (
+            <div>
+              <p className="auth-eyebrow">PARA VOCÊ</p>
+              <p className="content-curation-copy">
+                Baseado nas especialidades e ferramentas do seu perfil.
+              </p>
+              <div className="content-curation-list">
+                {forYou.map((post) => (
+                  <ContentCard key={post.id} post={post} />
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
       <section className="content-filters" aria-label="Filtrar conteúdo">
         <div>
           {kinds.map((item) => (

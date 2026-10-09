@@ -2,7 +2,8 @@
 
 ## Objetos de negócio
 
-- **Artigo**: conteúdo editorial perene, criado pela equipe ou por autor aprovado.
+- **Artigo**: conteúdo editorial perene, publicado por membro autenticado com
+  título, resumo, corpo, assunto e contexto de impacto.
 - **Discussão**: conversa técnica criada por um membro autenticado.
 - **Notícia**: item importado como metadado de uma fonte externa; o MentoCyber
   guarda título, excerto curto, tags e URL original — não republica a matéria.
@@ -41,13 +42,11 @@ Para enriquecer manualmente o contexto dos itens já importados, use
 ao concluir. O conteúdo é limitado a um trecho curto; a matéria integral não é
 copiada para a comunidade.
 
-## Tradução no site
+## Idioma da notícia
 
-Na página de uma notícia, membros autenticados podem traduzir o título e o
-resumo para o idioma do navegador. A integração é server-side e usa
-`GOOGLE_TRANSLATE_API_KEY` ou uma instância configurada em `LIBRETRANSLATE_URL`;
-essas credenciais nunca são enviadas ao navegador. A matéria completa continua
-na fonte original.
+O MentoCyber não usa serviço de tradução pago nem endpoint público não oficial.
+Ao abrir a fonte original, o leitor pode usar a tradução nativa do navegador.
+O conteúdo publicado no MentoCyber permanece no idioma disponibilizado pela fonte.
 
 No Vercel Hobby, a agenda configurada roda diariamente às 12:00 UTC. Planos Pro
 podem alterar `vercel.json` para atualizações mais frequentes. Configure
@@ -57,6 +56,6 @@ produção; a Vercel envia esse segredo no cabeçalho `Authorization` da cron.
 ## Newsletter
 
 As inscrições entram em `newsletterSubscribers` com o status
-`pending-confirmation`. Antes de habilitar o envio, conecte um provedor como
-Resend ou Brevo, verifique o domínio remetente e implemente double opt-in e
+`pending-confirmation` e até seis temas de interesse. Antes de habilitar o envio,
+conecte um provedor, verifique o domínio remetente e implemente double opt-in e
 cancelamento. Nunca use um e-mail inscrito para outros fins.

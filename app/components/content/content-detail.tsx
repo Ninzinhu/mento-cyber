@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-img-element -- News images come from varying public RSS hosts. */
 
 import Link from "next/link";
-import { Languages } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { ContentNav } from "./content-hub";
 import {
@@ -32,14 +31,10 @@ export function ContentDetail({
   const [comments, setComments] = useState<ContentComment[]>([]);
   const [body, setBody] = useState("");
   const [signedIn, setSignedIn] = useState(false);
+  const [memberId, setMemberId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
-  const [translation, setTranslation] = useState<{
-    language: string;
-    title: string;
-    excerpt: string;
-  } | null>(null);
-  const [translating, setTranslating] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const [reacted, setReacted] = useState(false);
   useEffect(() => {
     getContentPosts().then((items) => {
       const current =
@@ -53,8 +48,17 @@ export function ContentDetail({
       setImageFailed(false);
       if (current) getContentComments(current.id).then(setComments);
     });
-    return observeCommunityMember((member) => setSignedIn(Boolean(member)));
+    return observeCommunityMember((member) => {
+      setSignedIn(Boolean(member));
+      setMemberId(member?.uid || null);
+    });
   }, [discussionOnly, newsOnly, slug]);
+  useEffect(() => {
+    if (!post || !memberId) return;
+    void communityAction("content.read.track", { postId: post.id }).catch(
+      () => undefined,
+    );
+  }, [memberId, post]);
   async function comment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!post || body.trim().length < 8) return;
@@ -68,27 +72,47 @@ export function ContentDetail({
       );
     }
   }
-  async function translateNews() {
+  async function react() {
     if (!post) return;
-    const language = navigator.language.split("-")[0]?.toLowerCase() || "pt";
-    const cached = post.translations?.[language];
-    if (cached) {
-      setTranslation({ language, ...cached });
-      return;
-    }
-    setTranslating(true);
-    setNotice("");
     try {
-      const result = await communityAction<{
-        translation: { language: string; title: string; excerpt: string };
-      }>("content.news.translate", { postId: post.id, language });
-      setTranslation(result.translation);
+      await communityAction("content.reaction.toggle", {
+        postId: post.id,
+        enabled: true,
+      });
+      setPost({ ...post, reactionCount: Math.max(1, (post.reactionCount || 0) + 1) });
+      setReacted(true);
     } catch (error) {
       setNotice(
-        error instanceof Error ? error.message : "Não foi possível traduzir agora.",
+        error instanceof Error ? error.message : "Não foi possível registrar o apoio.",
       );
-    } finally {
-      setTranslating(false);
+    }
+  }
+  async function report(targetId: string, targetType: "post" | "comment") {
+    const reason = window.prompt("Qual é o motivo da denúncia?");
+    if (!reason) return;
+    try {
+      await communityAction("content.report", { targetId, targetType, reason });
+      setNotice("Denúncia recebida. A equipe fará a triagem.");
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : "Não foi possível enviar a denúncia.",
+      );
+    }
+  }
+  async function markBest(commentId: string) {
+    if (!post) return;
+    try {
+      await communityAction("content.comment.best", { postId: post.id, commentId });
+      setPost({ ...post, bestCommentId: commentId });
+      setComments((items) =>
+        items.map((item) => ({ ...item, bestAnswer: item.id === commentId })),
+      );
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível destacar a resposta.",
+      );
     }
   }
   if (!post)
@@ -127,7 +151,7 @@ export function ContentDetail({
           />
         </div>
         <p className="auth-eyebrow">{contentLabel(post.kind).toUpperCase()}</p>
-        <h1>{translation?.title || post.title}</h1>
+        <h1>{post.title}</h1>
         <div className="content-detail-meta">
           {post.authorName} · {formatContentDate(post.publishedAt)} ·{" "}
           {post.readingMinutes || 2} min
@@ -137,28 +161,44 @@ export function ContentDetail({
             <span key={tag}>{tag}</span>
           ))}
         </div>
-        <p className="content-detail-body">
-          {translation?.excerpt || post.body || post.excerpt}
-        </p>
+        <p className="content-detail-body">{post.body || post.excerpt}</p>
+        {post.whyItMatters && (
+          <aside className="content-why-it-matters">
+            <b>Por que isso importa</b>
+            <p>{post.whyItMatters}</p>
+          </aside>
+        )}
         {post.kind === "radar" && (
           <section className="content-translation">
             <div>
-              <b>Tradução no MentoCyber</b>
+              <b>Leitura em outros idiomas</b>
               <span>
-                Traduzimos título e resumo; a matéria completa permanece na fonte
-                original.
+                Use a tradução nativa do seu navegador ao abrir a fonte original. Assim
+                não dependemos de uma API paga nem enviamos seu conteúdo a outro
+                serviço.
               </span>
             </div>
-            {signedIn ? (
-              <button disabled={translating} onClick={translateNews} type="button">
-                <Languages size={15} />
-                {translating ? "Traduzindo…" : "Traduzir para meu idioma"}
-              </button>
-            ) : (
-              <Link href="/entrar">Entre para traduzir</Link>
-            )}
           </section>
         )}
+        <div className="content-detail-actions">
+          {signedIn ? (
+            <button disabled={reacted} onClick={react} type="button">
+              {reacted ? "Apoiado" : "Apoiar"}{" "}
+              {post.reactionCount ? `· ${post.reactionCount}` : ""}
+            </button>
+          ) : (
+            <Link href="/entrar">Entre para apoiar</Link>
+          )}
+          {signedIn && (
+            <button
+              className="content-quiet-action"
+              onClick={() => report(post.id, "post")}
+              type="button"
+            >
+              Denunciar
+            </button>
+          )}
+        </div>
         {post.sourceUrl && (
           <a
             className="content-source"
@@ -176,9 +216,28 @@ export function ContentDetail({
           <h2>Respostas</h2>
           {comments.map((item) => (
             <article key={item.id}>
-              <b>{item.authorName}</b>
+              <b>
+                {item.authorName}
+                {post.bestCommentId === item.id ? " · Melhor resposta" : ""}
+              </b>
               <span>{formatContentDate(item.createdAt)}</span>
               <p>{item.body}</p>
+              {signedIn && (
+                <div className="content-comment-actions">
+                  {post.authorId === memberId && post.bestCommentId !== item.id && (
+                    <button onClick={() => markBest(item.id)} type="button">
+                      Marcar como melhor
+                    </button>
+                  )}
+                  <button
+                    className="content-quiet-action"
+                    onClick={() => report(item.id, "comment")}
+                    type="button"
+                  >
+                    Denunciar
+                  </button>
+                </div>
+              )}
             </article>
           ))}
           {signedIn ? (

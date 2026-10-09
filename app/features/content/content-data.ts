@@ -29,9 +29,11 @@ export async function getContentPosts(kind?: ContentPost["kind"]) {
 
 export type ContentComment = {
   id: string;
+  authorId?: string;
   authorName: string;
   body: string;
   createdAt: string;
+  bestAnswer: boolean;
 };
 
 export async function getContentComments(postId: string) {
@@ -48,9 +50,12 @@ export async function getContentComments(postId: string) {
       .filter((item) => item.data().status === "published")
       .map((item) => ({
         id: item.id,
+        authorId:
+          typeof item.data().authorId === "string" ? item.data().authorId : undefined,
         authorName: String(item.data().authorName || "Membro"),
         body: String(item.data().body || ""),
         createdAt: asDate(item.data().createdAt),
+        bestAnswer: item.data().bestAnswer === true,
       }))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   } catch {

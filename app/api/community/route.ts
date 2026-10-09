@@ -64,6 +64,14 @@ const safeUrl = (value: unknown) => {
   const result = text(value, 2048);
   return !result || /^https:\/\//i.test(result) ? result : "";
 };
+const slugFor = (value: string, fallback: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 72) || fallback;
 
 function publicProfile(uid: string, profile: ProfileData) {
   return Object.fromEntries(
@@ -100,10 +108,12 @@ export async function POST(request: Request) {
 
     if (action === "newsletter.subscribe") {
       const email = text(payload.email, 254).toLowerCase();
+      const topics = array(payload.topics, 6).filter((tag) => contentTagSet.has(tag));
       if (!/^\S+@\S+\.\S+$/.test(email)) return error("Informe um e-mail válido.");
       await db.collection("newsletterSubscribers").doc(email).set(
         {
           email,
+          topics,
           status: "pending-confirmation",
           source: "newsletter-page",
           updatedAt: FieldValue.serverTimestamp(),
@@ -186,17 +196,10 @@ export async function POST(request: Request) {
         if (latest?.toMillis && Date.now() - latest.toMillis() < 5 * 60 * 1000)
           throw new Error("Aguarde alguns minutos antes de abrir outra discussão.");
         const handle = text(profile.data()?.handle, 24);
-        const slugBase = title
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "")
-          .slice(0, 72);
         transaction.create(postRef, {
           kind: "discussion",
           title,
-          slug: `${slugBase || "discussao"}-${postRef.id.slice(0, 6)}`,
+          slug: `${slugFor(title, "discussao")}-${postRef.id.slice(0, 6)}`,
           excerpt,
           body: excerpt,
           tags,
@@ -211,6 +214,50 @@ export async function POST(request: Request) {
         });
         transaction.update(profileRef, {
           lastDiscussionAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+      return NextResponse.json({ ok: true, id: postRef.id });
+    }
+
+    if (action === "content.article.create") {
+      const title = text(payload.title, 120);
+      const excerpt = text(payload.excerpt, 320);
+      const body = text(payload.body, 8_000);
+      const whyItMatters = text(payload.whyItMatters, 400);
+      const tags = array(payload.tags, 5).filter((tag) => contentTagSet.has(tag));
+      if (title.length < 12 || excerpt.length < 40 || body.length < 180)
+        return error("Escreva título, resumo e corpo suficientes para o artigo.");
+      if (/https?:\/\//i.test(`${title} ${excerpt} ${body} ${whyItMatters}`))
+        return error("Links não são permitidos em artigos da comunidade por enquanto.");
+      const postRef = db.collection("contentPosts").doc();
+      await db.runTransaction(async (transaction) => {
+        const profile = await transaction.get(profileRef);
+        if (!profile.exists) throw new Error("Perfil não encontrado.");
+        const latest = profile.data()?.lastArticleAt;
+        if (latest?.toMillis && Date.now() - latest.toMillis() < 15 * 60 * 1000)
+          throw new Error("Aguarde alguns minutos antes de publicar outro artigo.");
+        const handle = text(profile.data()?.handle, 24);
+        transaction.create(postRef, {
+          kind: "article",
+          title,
+          slug: `${slugFor(title, "artigo")}-${postRef.id.slice(0, 6)}`,
+          excerpt,
+          body,
+          whyItMatters,
+          tags,
+          authorId: uid,
+          authorName: text(profile.data()?.displayName, 60) || handle || "Membro",
+          status: "published",
+          visibility: "public",
+          reactionCount: 0,
+          commentCount: 0,
+          viewCount: 0,
+          publishedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        transaction.update(profileRef, {
+          lastArticleAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         });
       });
@@ -246,6 +293,103 @@ export async function POST(request: Request) {
           commentCount: FieldValue.increment(1),
           updatedAt: FieldValue.serverTimestamp(),
         });
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.reaction.toggle") {
+      const postId = text(payload.postId, 128);
+      const enabled = payload.enabled === true;
+      if (!postId) return error("Conteúdo inválido.");
+      const postRef = db.collection("contentPosts").doc(postId);
+      const reactionRef = db.collection("contentReactions").doc(`${uid}_${postId}`);
+      await db.runTransaction(async (transaction) => {
+        const [post, reaction] = await Promise.all([
+          transaction.get(postRef),
+          transaction.get(reactionRef),
+        ]);
+        if (!post.exists || post.data()?.status !== "published")
+          throw new Error("Conteúdo não encontrado.");
+        if (enabled && !reaction.exists) {
+          transaction.create(reactionRef, {
+            postId,
+            authorId: uid,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+          transaction.update(postRef, { reactionCount: FieldValue.increment(1) });
+        }
+        if (!enabled && reaction.exists) {
+          transaction.delete(reactionRef);
+          transaction.update(postRef, { reactionCount: FieldValue.increment(-1) });
+        }
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.comment.best") {
+      const postId = text(payload.postId, 128);
+      const commentId = text(payload.commentId, 128);
+      const postRef = db.collection("contentPosts").doc(postId);
+      const commentRef = db.collection("contentComments").doc(commentId);
+      await db.runTransaction(async (transaction) => {
+        const [post, comment] = await Promise.all([
+          transaction.get(postRef),
+          transaction.get(commentRef),
+        ]);
+        if (
+          !post.exists ||
+          post.data()?.authorId !== uid ||
+          !comment.exists ||
+          comment.data()?.postId !== postId
+        )
+          throw new Error("Você não pode destacar esta resposta.");
+        transaction.update(postRef, { bestCommentId: commentId });
+        transaction.update(commentRef, { bestAnswer: true });
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.report") {
+      const targetId = text(payload.targetId, 128);
+      const targetType = payload.targetType === "comment" ? "comment" : "post";
+      const reason = text(payload.reason, 400);
+      if (!targetId || reason.length < 8)
+        return error("Explique o motivo da denúncia.");
+      await db.collection("contentReports").doc(`${uid}_${targetType}_${targetId}`).set(
+        {
+          targetId,
+          targetType,
+          reason,
+          reporterId: uid,
+          status: "open",
+          updatedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.read.track") {
+      const postId = text(payload.postId, 128);
+      if (!postId) return error("Conteúdo inválido.");
+      const postRef = db.collection("contentPosts").doc(postId);
+      const readRef = db.collection("contentReads").doc(`${uid}_${postId}`);
+      await db.runTransaction(async (transaction) => {
+        const [post, read] = await Promise.all([
+          transaction.get(postRef),
+          transaction.get(readRef),
+        ]);
+        if (!post.exists || post.data()?.status !== "published")
+          throw new Error("Conteúdo não encontrado.");
+        if (!read.exists) {
+          transaction.create(readRef, {
+            postId,
+            uid,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+          transaction.update(postRef, { viewCount: FieldValue.increment(1) });
+        }
       });
       return NextResponse.json({ ok: true });
     }
