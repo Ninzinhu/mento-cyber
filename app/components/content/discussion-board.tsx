@@ -14,6 +14,7 @@ export function DiscussionBoard() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tag, setTag] = useState("SOC");
+  const [referenceUrl, setReferenceUrl] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
   useEffect(() => {
@@ -29,9 +30,11 @@ export function DiscussionBoard() {
         title,
         content: body,
         tags: [tag],
+        referenceUrl,
       });
       setTitle("");
       setBody("");
+      setReferenceUrl("");
       setNotice("Discussão publicada. Ela já está disponível para a comunidade.");
       setPosts(await getContentPosts("discussion"));
     } catch (error) {
@@ -85,6 +88,15 @@ export function DiscussionBoard() {
                 <option key={item}>{item}</option>
               ))}
             </select>
+          </label>
+          <label>
+            Referência segura <small>(opcional, somente HTTPS)</small>
+            <input
+              onChange={(event) => setReferenceUrl(event.target.value)}
+              placeholder="https://documentação-ou-fonte.exemplo"
+              type="url"
+              value={referenceUrl}
+            />
           </label>
           <button disabled={pending} type="submit">
             {pending ? "Publicando…" : "Abrir discussão"}

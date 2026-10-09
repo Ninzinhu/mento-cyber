@@ -57,6 +57,8 @@ function serializePost(id: string, value: Record<string, unknown>): ContentPost 
     authorId: typeof value.authorId === "string" ? value.authorId : undefined,
     sourceName: typeof value.sourceName === "string" ? value.sourceName : undefined,
     sourceUrl: typeof value.sourceUrl === "string" ? value.sourceUrl : undefined,
+    referenceUrl:
+      typeof value.referenceUrl === "string" ? value.referenceUrl : undefined,
     region:
       value.region === "Brasil" || value.region === "Global" ? value.region : undefined,
     imageUrl: typeof value.imageUrl === "string" ? value.imageUrl : undefined,

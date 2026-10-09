@@ -246,6 +246,16 @@ export function ContentDetail({
             Abrir fonte original: {post.sourceName || "referência externa"} ↗
           </a>
         )}
+        {post.referenceUrl && (
+          <a
+            className="content-source"
+            href={post.referenceUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Abrir referência compartilhada ↗
+          </a>
+        )}
         {notice && <p aria-live="polite">{notice}</p>}
       </article>
       {post.kind === "discussion" && (

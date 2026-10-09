@@ -41,6 +41,7 @@ export type ContentPost = {
   authorId?: string;
   sourceName?: string;
   sourceUrl?: string;
+  referenceUrl?: string;
   region?: "Brasil" | "Global";
   imageUrl?: string;
   translations?: Record<string, { title: string; excerpt: string }>;

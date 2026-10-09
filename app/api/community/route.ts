@@ -187,11 +187,14 @@ export async function POST(request: Request) {
     if (action === "content.discussion.create") {
       const title = text(payload.title, 120);
       const excerpt = text(payload.content, 1200);
+      const referenceUrl = safeUrl(payload.referenceUrl);
       const tags = array(payload.tags, 5).filter((tag) => contentTagSet.has(tag));
       if (title.length < 12 || excerpt.length < 20)
         return error("Escreva um título e um contexto com ao menos 20 caracteres.");
       if (/https?:\/\//i.test(`${title} ${excerpt}`))
-        return error("Links não são permitidos em novas discussões por enquanto.");
+        return error(
+          "Inclua links apenas no campo de referência, para que sejam exibidos com segurança.",
+        );
       const postRef = db.collection("contentPosts").doc();
       await db.runTransaction(async (transaction) => {
         const profile = await transaction.get(profileRef);
@@ -207,6 +210,7 @@ export async function POST(request: Request) {
           excerpt,
           body: excerpt,
           tags,
+          referenceUrl,
           authorId: uid,
           authorName: text(profile.data()?.displayName, 60) || handle || "Membro",
           status: "published",
