@@ -10,9 +10,9 @@ export function SiteHeader() {
         <a href="#biblioteca">Base aberta</a>
         <Link href="/conteudos">Conteúdos</Link>
         <Link href="/noticias">Notícias</Link>
+        <Link href="/operacoes">Operações</Link>
         <Link href="/estudos">Missões</Link>
         <Link href="/labs">Labs</Link>
-        <a href="#pratica">Como participamos</a>
         <Link href="/perfil">Perfil</Link>
         <Link className="action nav-join" href="/registro">
           Participar

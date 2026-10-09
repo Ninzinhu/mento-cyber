@@ -2728,6 +2728,23 @@ button:focus-visible {
   gap: 12px;
   margin-top: 35px;
 }
+.horizon-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+.horizon-proof span {
+  border: 1px solid #34343d;
+  color: #bcbcc5;
+  padding: 7px 9px;
+  font:
+    700 0.62rem ui-monospace,
+    SFMono-Regular,
+    monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
 .horizon-primary,
 .horizon-secondary {
   padding: 13px 16px;
@@ -6756,6 +6773,346 @@ button:focus-visible {
   }
   .lab-workspace-head h1 {
     font-size: clamp(2.6rem, 13vw, 4.4rem);
+  }
+}
+.operations-hero {
+  max-width: 820px;
+  padding: 54px 0 32px;
+}
+.operations-hero h1 {
+  margin: 8px 0;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  letter-spacing: -0.07em;
+}
+.operations-hero > p {
+  color: #b7b7c1;
+  max-width: 640px;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+.operations-hero > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 25px;
+}
+.operations-hero a,
+.weekly-case > div > a,
+.tracks a,
+.operations-brief a {
+  display: inline-block;
+  border: 1px solid #e7e7ec;
+  background: #f1f1f3;
+  color: #111116;
+  padding: 11px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.operations-hero a + a {
+  background: transparent;
+  color: #f0f0f2;
+  border-color: #4a4a54;
+}
+.operations-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 0.8fr;
+  gap: 18px;
+}
+.operations-map,
+.operations-readiness,
+.weekly-case,
+.tracks,
+.operations-community form,
+.operations-brief,
+.operations-search {
+  border: 1px solid #383840;
+  background: #141417;
+}
+.operations-map {
+  padding: 28px;
+  background-image:
+    linear-gradient(#202027 1px, transparent 1px),
+    linear-gradient(90deg, #202027 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+.operations-map h2,
+.operations-readiness strong {
+  font-size: 2rem;
+  margin: 8px 0 25px;
+}
+.operations-map article {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 13px;
+  align-items: start;
+  padding: 15px 0;
+  border-top: 1px solid #3a3a43;
+}
+.operations-map article p {
+  margin: 5px 0 0;
+  color: #aaaab4;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.operation-level {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #f0bf5e;
+  box-shadow: 0 0 18px currentColor;
+}
+.operation-level.alto {
+  color: #f06b5d;
+  background: #f06b5d;
+}
+.operation-level.médio {
+  color: #e6b453;
+}
+.operations-map button,
+.operations-community button {
+  border: 1px solid #575762;
+  background: transparent;
+  color: #f4f4f7;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.operations-readiness {
+  padding: 28px;
+}
+.operations-readiness strong {
+  display: block;
+  font-size: 4rem;
+  letter-spacing: -0.08em;
+}
+.operations-readiness p {
+  color: #aaaab4;
+  line-height: 1.6;
+}
+.operations-readiness > div {
+  height: 6px;
+  background: #292932;
+  margin: 22px 0;
+}
+.operations-readiness > div span {
+  display: block;
+  height: 100%;
+  background: #f1f1f3;
+}
+.operations-readiness a {
+  color: #d6d6df;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.operations-search {
+  margin: 18px 0;
+  padding: 20px;
+}
+.operations-search label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.operations-search input,
+.operations-community input {
+  border: 1px solid #4a4a55;
+  background: #0d0d10;
+  color: #f0f0f4;
+  padding: 12px;
+  font: inherit;
+}
+.operations-search > div {
+  display: grid;
+  gap: 8px;
+  margin-top: 15px;
+}
+.operations-search > div a {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border-top: 1px solid #383840;
+  color: #dddde5;
+}
+.operations-search span {
+  color: #90909b;
+  font-size: 0.72rem;
+}
+.weekly-case {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr;
+  gap: 32px;
+  margin: 18px 0;
+  padding: 30px;
+}
+.weekly-case h2,
+.tracks h2,
+.operations-community h2,
+.operations-brief h2 {
+  margin: 6px 0 12px;
+  font-size: clamp(1.55rem, 3vw, 2.5rem);
+  letter-spacing: -0.05em;
+}
+.weekly-case p {
+  color: #b6b6c0;
+  max-width: 660px;
+  line-height: 1.65;
+}
+.weekly-case ul,
+.weekly-case ol {
+  padding-left: 20px;
+  color: #d4d4dc;
+  line-height: 1.85;
+}
+.weekly-case aside {
+  border-left: 1px solid #4a4a55;
+  padding-left: 28px;
+}
+.tracks {
+  padding: 30px;
+}
+.tracks > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.tracks article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #3d3d47;
+  background: #101013;
+}
+.tracks article > span {
+  color: #acacb8;
+  font:
+    0.67rem ui-monospace,
+    monospace;
+}
+.tracks h3 {
+  font-size: 1.15rem;
+  margin: 10px 0;
+}
+.tracks ol {
+  padding-left: 18px;
+  color: #b6b6c0;
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+.tracks a {
+  margin-top: 12px;
+  background: transparent;
+  color: #f1f1f4;
+  border-color: #4b4b55;
+}
+.operations-community {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 18px 0;
+}
+.operations-community form {
+  padding: 26px;
+  display: grid;
+  gap: 12px;
+}
+.operations-community button {
+  width: max-content;
+  background: #f0f0f3;
+  color: #121216;
+  border-color: #f0f0f3;
+}
+.operations-brief {
+  padding: 30px;
+  margin: 18px 0 40px;
+}
+.operations-brief p:not(.auth-eyebrow) {
+  color: #b7b7c0;
+  max-width: 650px;
+  line-height: 1.65;
+}
+.operations-notice {
+  border-left: 3px solid #f1f1f3;
+  padding: 12px;
+  color: #e8e8ed;
+}
+.brazil-radar {
+  margin: 18px 0;
+  padding: 30px;
+  border: 1px solid #383840;
+  background: #121215;
+}
+.brazil-radar h2 {
+  margin: 6px 0 22px;
+  font-size: clamp(1.55rem, 3vw, 2.5rem);
+  letter-spacing: -0.05em;
+}
+.brazil-radar > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.brazil-radar > div a {
+  display: grid;
+  gap: 8px;
+  min-height: 145px;
+  padding: 16px;
+  border: 1px solid #3d3d47;
+  color: #ededf1;
+  background: #0e0e11;
+}
+.brazil-radar small,
+.brazil-radar span {
+  color: #a3a3ae;
+  font:
+    0.68rem ui-monospace,
+    monospace;
+}
+.brazil-radar > a {
+  color: #f0f0f3;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+@media (max-width: 860px) {
+  .operations-grid,
+  .weekly-case,
+  .operations-community {
+    grid-template-columns: 1fr;
+  }
+  .tracks > div,
+  .brazil-radar > div {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .weekly-case aside {
+    border-left: 0;
+    border-top: 1px solid #4a4a55;
+    padding: 18px 0 0;
+  }
+}
+@media (max-width: 520px) {
+  .tracks > div,
+  .brazil-radar > div {
+    grid-template-columns: 1fr;
+  }
+  .operations-map {
+    padding: 20px;
+  }
+  .operations-map article {
+    grid-template-columns: 10px 1fr;
+  }
+  .operations-map button {
+    grid-column: 2;
+  }
+  .weekly-case,
+  .tracks,
+  .operations-community form {
+    padding: 20px;
+  }
+  .brazil-radar {
+    padding: 20px;
   }
 }
 

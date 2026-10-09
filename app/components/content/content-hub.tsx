@@ -245,6 +245,7 @@ export function ContentNav() {
         <Link href="/conteudos">Conteúdos</Link>
         <Link href="/discussoes">Discussões</Link>
         <Link href="/noticias">Notícias</Link>
+        <Link href="/operacoes">Operações</Link>
         <Link href="/newsletter">Newsletter</Link>
         <Link href="/perfil">Perfil</Link>
       </nav>

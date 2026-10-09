@@ -39,7 +39,7 @@ export function HorizonHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: reducedMotion ? 0 : 0.08 }}
         >
-          Desenvolva leitura de cenário antes de responder a um incidente.
+          Pratique decisões de defesa antes que o incidente aconteça.
         </motion.h1>
         <motion.p
           className="horizon-description"
@@ -47,8 +47,8 @@ export function HorizonHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: reducedMotion ? 0 : 0.16 }}
         >
-          Missões, encontros e revisão entre pares para transformar curiosidade em
-          decisão técnica justificável.
+          Radar de sinais, casos simulados e revisão entre pares para transformar
+          curiosidade em decisão técnica justificável.
         </motion.p>
         <motion.div
           className="horizon-actions"
@@ -56,13 +56,18 @@ export function HorizonHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: reducedMotion ? 0 : 0.24 }}
         >
-          <Link className="horizon-primary" href="/estudos">
-            Ver missões <span aria-hidden="true">↗</span>
+          <Link className="horizon-primary" href="/operacoes">
+            Explorar operações <span aria-hidden="true">↗</span>
           </Link>
-          <a className="horizon-secondary" href="#pratica">
-            Como participar
-          </a>
+          <Link className="horizon-secondary" href="/labs">
+            Abrir caso da semana
+          </Link>
         </motion.div>
+        <div className="horizon-proof" aria-label="O que está disponível">
+          <span>Radar Brasil</span>
+          <span>Caso da semana</span>
+          <span>Trilhas por função</span>
+        </div>
       </div>
 
       <motion.div
@@ -76,8 +81,8 @@ export function HorizonHero() {
         <SignalField />
         <span className="visual-axis axis-x" />
         <span className="visual-axis axis-y" />
-        <span className="visual-readout readout-a">NODE / 01</span>
-        <span className="visual-readout readout-b">MODE / LEARN</span>
+        <span className="visual-readout readout-a">SIGNAL / LIVE</span>
+        <span className="visual-readout readout-b">MODE / PRACTICE</span>
       </motion.div>
 
       <aside className="horizon-control" aria-label="Estado da plataforma">
@@ -98,8 +103,8 @@ export function HorizonHero() {
             </div>
           ))}
         </dl>
-        <Link href="/estudos/caso">
-          Abrir missão <span aria-hidden="true">→</span>
+        <Link href="/operacoes">
+          Abrir central <span aria-hidden="true">→</span>
         </Link>
       </aside>
     </section>

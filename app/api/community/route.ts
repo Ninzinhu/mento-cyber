@@ -866,6 +866,45 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    if (action === "operations.watchlist.update") {
+      const ids = array(payload.ids, 12).filter((id) => /^[a-z0-9-]{2,40}$/i.test(id));
+      await profileRef.set(
+        { operationWatchlist: ids, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true },
+      );
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "operations.room.create") {
+      const subject = text(payload.subject, 140);
+      if (subject.length < 12) return error("Descreva a sala com mais contexto.");
+      if (/https?:\/\//i.test(subject))
+        return error("Links não são permitidos no título da sala.");
+      const profile = await profileRef.get();
+      if (!profile.exists) return error("Perfil não encontrado.", 404);
+      const roomRef = db.collection("operationRooms").doc();
+      await roomRef.set({
+        subject,
+        status: "open",
+        ownerId: uid,
+        ownerName: text(profile.data()?.displayName, 60) || "Membro",
+        memberIds: [uid],
+        createdAt: FieldValue.serverTimestamp(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      return NextResponse.json({ ok: true, id: roomRef.id });
+    }
+
+    if (action === "operations.mentorship.goal") {
+      const goal = text(payload.goal, 180);
+      if (goal.length < 12) return error("Descreva seu objetivo com mais contexto.");
+      await profileRef.set(
+        { mentorshipGoal: goal, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true },
+      );
+      return NextResponse.json({ ok: true });
+    }
+
     if (
       action === "network.follow" ||
       action === "network.save" ||
