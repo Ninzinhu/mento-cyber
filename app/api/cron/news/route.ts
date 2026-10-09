@@ -241,6 +241,21 @@ function articleImage(html: string) {
   return candidates[0]?.url;
 }
 
+function articleLead(html: string) {
+  const article =
+    html.match(
+      /<(?:article|main)\b[^>]*>([\s\S]{0,180000}?)<\/(?:article|main)>/i,
+    )?.[1] || html;
+  const paragraphs = (article.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) || [])
+    .map((paragraph) => decode(paragraph))
+    .filter((paragraph) => paragraph.length >= 90)
+    .filter(
+      (paragraph) =>
+        !/(cookie|privacidade|newsletter|subscribe|anuncie)/i.test(paragraph),
+    );
+  return paragraphs.join(" ").slice(0, 1_100);
+}
+
 function trustedArticleUrl(value: string) {
   try {
     const url = new URL(value);
@@ -299,11 +314,12 @@ async function enrichFromSource(item: FeedItem) {
     const description = decode(
       metaContent(html, "og:description") || metaContent(html, "description"),
     ).slice(0, 1_600);
+    const lead = articleLead(html);
     return {
       ...item,
       imageUrl,
       excerpt: description || item.excerpt,
-      body: description || item.body,
+      body: lead || description || item.body,
     };
   } catch {
     return item;
@@ -398,7 +414,9 @@ export async function GET(request: Request) {
   const db = adminDb();
   const forceImageRefresh =
     new URL(request.url).searchParams.get("refreshImages") === "1";
-  const enrichmentLimit = forceImageRefresh ? 80 : 24;
+  const forceContextRefresh =
+    new URL(request.url).searchParams.get("refreshContext") === "1";
+  const enrichmentLimit = forceImageRefresh || forceContextRefresh ? 80 : 24;
   const results = await Promise.allSettled(
     feeds.map(async (feed) => {
       const response = await fetch(feed.url, {
@@ -417,14 +435,18 @@ export async function GET(request: Request) {
     .get();
   const existingByUrl = new Map<
     string,
-    { ref: DocumentReference; needsImageEnrichment: boolean }
+    { ref: DocumentReference; needsEnrichment: boolean }
   >(
     existing.docs.map((item) => [
       canonicalUrl(String(item.data().sourceUrl || "")),
       {
         ref: item.ref,
-        needsImageEnrichment:
-          !item.data().imageUrl && (forceImageRefresh || !item.data().imageCheckedAt),
+        needsEnrichment:
+          (!item.data().imageUrl &&
+            (forceImageRefresh || !item.data().imageCheckedAt)) ||
+          (forceContextRefresh &&
+            String(item.data().body || "").length < 700 &&
+            !item.data().contextCheckedAt),
       },
     ]),
   );
@@ -444,7 +466,7 @@ export async function GET(request: Request) {
       const titleKey = canonicalTitle(item.title);
       const existingPost = existingByUrl.get(sourceUrl);
       if (existingPost || knownTitles.has(titleKey)) {
-        if (existingPost?.needsImageEnrichment && enrichments.length < enrichmentLimit)
+        if (existingPost?.needsEnrichment && enrichments.length < enrichmentLimit)
           enrichments.push({
             ref: existingPost.ref,
             item: { ...item, url: sourceUrl },
@@ -478,7 +500,7 @@ export async function GET(request: Request) {
       knownTitles.add(titleKey);
       existingByUrl.set(sourceUrl, {
         ref,
-        needsImageEnrichment: !item.imageUrl,
+        needsEnrichment: !item.imageUrl,
       });
       if (!item.imageUrl && enrichments.length < enrichmentLimit)
         enrichments.push({ ref, item: { ...item, url: sourceUrl } });
@@ -495,6 +517,7 @@ export async function GET(request: Request) {
           excerpt: enriched.excerpt || item.excerpt,
           body: enriched.body || item.body,
           imageCheckedAt: FieldValue.serverTimestamp(),
+          contextCheckedAt: FieldValue.serverTimestamp(),
           enrichedAt: FieldValue.serverTimestamp(),
         },
         { merge: true },

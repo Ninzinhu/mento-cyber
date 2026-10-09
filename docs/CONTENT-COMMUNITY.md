@@ -36,6 +36,10 @@ armazena apenas os metadados e direciona o leitor à publicação original.
 Quando o RSS não fornece mídia, o coletor consulta metadados Open Graph somente
 em domínios de fontes previamente aprovadas; falhas de imagem recebem um visual
 de fallback no card.
+Para enriquecer manualmente o contexto dos itens já importados, use
+`$env:NEWS_CRON_REFRESH_CONTEXT="true"; npm run news:sync` e remova a variável
+ao concluir. O conteúdo é limitado a um trecho curto; a matéria integral não é
+copiada para a comunidade.
 
 ## Tradução no site
 
