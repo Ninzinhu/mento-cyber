@@ -431,6 +431,18 @@ function canonicalTitle(value: string) {
     .trim();
 }
 
+function watchSignalIds(item: FeedItem) {
+  const value = `${item.title} ${item.excerpt}`.toLowerCase();
+  return [
+    /(cve|vulnerab|exploit|zero-day)/.test(value) ? "cve" : null,
+    /(ransom|extors|vazamento|leak|breach)/.test(value) ? "ransomware" : null,
+    /(phishing|mfa|identidade|credential|credencial|login)/.test(value)
+      ? "identity"
+      : null,
+    /(cloud|saas|aws|azure|gcp)/.test(value) ? "cloud" : null,
+  ].filter((id): id is string => Boolean(id));
+}
+
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (
@@ -529,6 +541,28 @@ export async function GET(request: Request) {
         reactionCount: 0,
         commentCount: 0,
       });
+      const watchedSignals = watchSignalIds(item);
+      if (watchedSignals.length) {
+        const watchers = await db
+          .collection("operationWatchlists")
+          .where("ids", "array-contains-any", watchedSignals)
+          .limit(100)
+          .get();
+        await Promise.all(
+          watchers.docs.map((watcher) =>
+            db
+              .collection("operationAlerts")
+              .doc(`${watcher.id}_${id}`)
+              .set({
+                uid: watcher.id,
+                postId: `radar_${id}`,
+                signalIds: watchedSignals,
+                title: item.title,
+                createdAt: FieldValue.serverTimestamp(),
+              }),
+          ),
+        );
+      }
       knownUrls.add(sourceUrl);
       knownTitles.add(titleKey);
       existingByUrl.set(sourceUrl, {
@@ -560,5 +594,13 @@ export async function GET(request: Request) {
   const failures = results.flatMap((result) =>
     result.status === "rejected" ? [String(result.reason)] : [],
   );
-  return NextResponse.json({ ok: true, imported, failures });
+  const importedCount = imported.reduce((total, source) => total + source.imported, 0);
+  await db.collection("newsSyncRuns").add({
+    importedCount,
+    sourceCount: feeds.length,
+    failureCount: failures.length,
+    failures: failures.slice(0, 10),
+    finishedAt: FieldValue.serverTimestamp(),
+  });
+  return NextResponse.json({ ok: true, imported, failures, importedCount });
 }

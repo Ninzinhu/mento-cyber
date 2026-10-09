@@ -7001,6 +7001,36 @@ button:focus-visible {
   font-size: 0.8rem;
   line-height: 1.8;
 }
+.tracks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tracks li button {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  padding: 0;
+  border: 1px solid #51515d;
+  background: transparent;
+  color: #babac3;
+  font:
+    0.64rem ui-monospace,
+    monospace;
+}
+.tracks li button.is-complete {
+  border-color: #d8d8df;
+  background: #e9e9ed;
+  color: #121215;
+}
+.track-progress {
+  display: block;
+  margin-top: 14px;
+  color: #9898a4;
+  font:
+    0.68rem ui-monospace,
+    monospace;
+}
 .tracks a {
   margin-top: 12px;
   background: transparent;
@@ -7037,6 +7067,102 @@ button:focus-visible {
   border-left: 3px solid #f1f1f3;
   padding: 12px;
   color: #e8e8ed;
+}
+.operations-alerts {
+  margin: 18px 0;
+  padding: 28px;
+  border: 1px solid #4a4a55;
+  background: linear-gradient(135deg, #15151a, #0c0c0e);
+}
+.operations-alerts h2 {
+  margin: 6px 0 18px;
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  letter-spacing: -0.045em;
+}
+.operations-alerts > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.operations-alerts a {
+  display: grid;
+  gap: 8px;
+  min-height: 112px;
+  padding: 15px;
+  border: 1px solid #373741;
+  color: #efeff3;
+}
+.operations-alerts a span {
+  color: #a6a6b1;
+  font:
+    0.65rem ui-monospace,
+    monospace;
+}
+.moderation-console {
+  width: min(1100px, calc(100% - 40px));
+  margin: 64px auto;
+}
+.moderation-console__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px;
+  border: 1px solid #3b3b44;
+  background: #121215;
+}
+.moderation-console h1 {
+  margin: 6px 0 12px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  letter-spacing: -0.06em;
+}
+.moderation-console__header p:not(.auth-eyebrow) {
+  max-width: 620px;
+  color: #acacb6;
+  line-height: 1.55;
+}
+.moderation-console button {
+  padding: 10px 14px;
+  border: 1px solid #555560;
+  background: transparent;
+  color: #f2f2f4;
+  font-weight: 700;
+}
+.moderation-console__notice {
+  padding: 12px 2px;
+  color: #bdbdc6;
+}
+.moderation-console__list {
+  display: grid;
+  gap: 10px;
+}
+.moderation-console__list article {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid #35353e;
+  background: #101013;
+}
+.moderation-console__list article > div:first-child {
+  display: grid;
+  gap: 7px;
+}
+.moderation-console__list span,
+.moderation-console__list small {
+  color: #9e9ea9;
+  font:
+    0.67rem ui-monospace,
+    monospace;
+}
+.moderation-console__list article > div:last-child {
+  display: flex;
+  gap: 8px;
+}
+.moderation-console__list article > div:last-child button:last-child {
+  border-color: #c36464;
+  color: #ffb6b6;
 }
 .brazil-radar {
   margin: 18px 0;
@@ -7083,6 +7209,7 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
   .tracks > div,
+  .operations-alerts > div,
   .brazil-radar > div {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -7094,6 +7221,7 @@ button:focus-visible {
 }
 @media (max-width: 520px) {
   .tracks > div,
+  .operations-alerts > div,
   .brazil-radar > div {
     grid-template-columns: 1fr;
   }
@@ -7113,6 +7241,15 @@ button:focus-visible {
   }
   .brazil-radar {
     padding: 20px;
+  }
+  .moderation-console {
+    width: min(100% - 28px, 1100px);
+    margin: 32px auto;
+  }
+  .moderation-console__header,
+  .moderation-console__list article {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

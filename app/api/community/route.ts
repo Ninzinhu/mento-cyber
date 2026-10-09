@@ -5,6 +5,7 @@ import { getLabById, labSimulation } from "../../features/labs/catalog";
 import { validatesLabChallenge } from "../../features/labs/lab-challenge";
 import { contentTags } from "../../features/content/content-model";
 import { targetLanguage, translateNewsMetadata } from "../../lib/content-translation";
+import { practiceTracks } from "../../features/operations/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ const publicFields = [
   "showActivity",
 ];
 const missionIds = new Set(["caso", "sonda", "matriz"]);
+const trackIds = new Set(practiceTracks.map((track) => track.id));
 const contentTagSet = new Set<string>(contentTags);
 const text = (value: unknown, max: number) =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -258,8 +260,14 @@ export async function POST(request: Request) {
         });
         transaction.update(profileRef, {
           lastArticleAt: FieldValue.serverTimestamp(),
+          xp: FieldValue.increment(30),
           updatedAt: FieldValue.serverTimestamp(),
         });
+        transaction.set(
+          db.collection("memberProfiles").doc(uid),
+          { xp: FieldValue.increment(30), updatedAt: FieldValue.serverTimestamp() },
+          { merge: true },
+        );
       });
       return NextResponse.json({ ok: true, id: postRef.id });
     }
@@ -281,6 +289,9 @@ export async function POST(request: Request) {
         if (!post.exists || post.data()?.status !== "published")
           throw new Error("Discussão não encontrada.");
         if (!profile.exists) throw new Error("Perfil não encontrado.");
+        const latest = profile.data()?.lastCommentAt;
+        if (latest?.toMillis && Date.now() - latest.toMillis() < 20 * 1000)
+          throw new Error("Aguarde alguns segundos antes de enviar outra resposta.");
         transaction.create(commentRef, {
           postId,
           authorId: uid,
@@ -293,6 +304,16 @@ export async function POST(request: Request) {
           commentCount: FieldValue.increment(1),
           updatedAt: FieldValue.serverTimestamp(),
         });
+        transaction.update(profileRef, {
+          lastCommentAt: FieldValue.serverTimestamp(),
+          xp: FieldValue.increment(5),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        transaction.set(
+          db.collection("memberProfiles").doc(uid),
+          { xp: FieldValue.increment(5), updatedAt: FieldValue.serverTimestamp() },
+          { merge: true },
+        );
       });
       return NextResponse.json({ ok: true });
     }
@@ -304,12 +325,16 @@ export async function POST(request: Request) {
       const postRef = db.collection("contentPosts").doc(postId);
       const reactionRef = db.collection("contentReactions").doc(`${uid}_${postId}`);
       await db.runTransaction(async (transaction) => {
-        const [post, reaction] = await Promise.all([
+        const [post, reaction, profile] = await Promise.all([
           transaction.get(postRef),
           transaction.get(reactionRef),
+          transaction.get(profileRef),
         ]);
         if (!post.exists || post.data()?.status !== "published")
           throw new Error("Conteúdo não encontrado.");
+        const latest = profile.data()?.lastReactionAt;
+        if (latest?.toMillis && Date.now() - latest.toMillis() < 1200)
+          throw new Error("Aguarde um instante antes de reagir novamente.");
         if (enabled && !reaction.exists) {
           transaction.create(reactionRef, {
             postId,
@@ -322,6 +347,14 @@ export async function POST(request: Request) {
           transaction.delete(reactionRef);
           transaction.update(postRef, { reactionCount: FieldValue.increment(-1) });
         }
+        transaction.set(
+          profileRef,
+          {
+            lastReactionAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
       });
       return NextResponse.json({ ok: true });
     }
@@ -345,6 +378,19 @@ export async function POST(request: Request) {
           throw new Error("Você não pode destacar esta resposta.");
         transaction.update(postRef, { bestCommentId: commentId });
         transaction.update(commentRef, { bestAnswer: true });
+        if (comment.data()?.authorId !== uid) {
+          const authorId = String(comment.data()?.authorId);
+          transaction.set(
+            db.collection("profiles").doc(authorId),
+            { xp: FieldValue.increment(15), updatedAt: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+          transaction.set(
+            db.collection("memberProfiles").doc(authorId),
+            { xp: FieldValue.increment(15), updatedAt: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+        }
       });
       return NextResponse.json({ ok: true });
     }
@@ -868,11 +914,55 @@ export async function POST(request: Request) {
 
     if (action === "operations.watchlist.update") {
       const ids = array(payload.ids, 12).filter((id) => /^[a-z0-9-]{2,40}$/i.test(id));
-      await profileRef.set(
-        { operationWatchlist: ids, updatedAt: FieldValue.serverTimestamp() },
-        { merge: true },
-      );
+      await Promise.all([
+        profileRef.set(
+          { operationWatchlist: ids, updatedAt: FieldValue.serverTimestamp() },
+          { merge: true },
+        ),
+        db
+          .collection("operationWatchlists")
+          .doc(uid)
+          .set({ uid, ids, updatedAt: FieldValue.serverTimestamp() }),
+      ]);
       return NextResponse.json({ ok: true });
+    }
+
+    if (action === "operations.dashboard") {
+      const [watchlist, alerts, progress] = await Promise.all([
+        db.collection("operationWatchlists").doc(uid).get(),
+        db.collection("operationAlerts").where("uid", "==", uid).limit(12).get(),
+        db.collection("trackProgress").where("uid", "==", uid).limit(12).get(),
+      ]);
+      return NextResponse.json({
+        watchlist: array(watchlist.data()?.ids, 12),
+        alerts: alerts.docs.map((item) => ({ id: item.id, ...item.data() })),
+        progress: progress.docs.map((item) => ({
+          trackId: text(item.data()?.trackId, 40),
+          completedSteps: array(item.data()?.completedSteps, 4),
+        })),
+      });
+    }
+
+    if (action === "operations.track.progress") {
+      const trackId = text(payload.trackId, 40);
+      const completedSteps = array(payload.completedSteps, 8).filter((step) =>
+        /^[1-4]$/.test(step),
+      );
+      if (!trackIds.has(trackId)) return error("Trilha inválida.");
+      await db
+        .collection("trackProgress")
+        .doc(`${uid}_${trackId}`)
+        .set(
+          {
+            uid,
+            trackId,
+            completedSteps,
+            status: completedSteps.length === 4 ? "completed" : "active",
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+      return NextResponse.json({ ok: true, completedSteps });
     }
 
     if (action === "operations.room.create") {
@@ -902,6 +992,67 @@ export async function POST(request: Request) {
         { mentorshipGoal: goal, updatedAt: FieldValue.serverTimestamp() },
         { merge: true },
       );
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "moderation.queue" || action === "moderation.resolve") {
+      const profile = await profileRef.get();
+      if (
+        !profile.exists ||
+        !["moderator", "admin"].includes(String(profile.data()?.role))
+      )
+        return error("Acesso restrito à equipe.", 403);
+      if (action === "moderation.queue") {
+        const reports = await db
+          .collection("contentReports")
+          .where("status", "==", "open")
+          .limit(40)
+          .get();
+        return NextResponse.json({
+          items: reports.docs.map((item) => ({ id: item.id, ...item.data() })),
+        });
+      }
+      const reportId = text(payload.reportId, 128);
+      const decision = payload.decision === "hide" ? "hide" : "dismiss";
+      const reportRef = db.collection("contentReports").doc(reportId);
+      const report = await reportRef.get();
+      if (!report.exists) return error("Denúncia não encontrada.", 404);
+      const targetType = String(report.data()?.targetType || "");
+      const targetId = text(report.data()?.targetId, 128);
+      if (decision === "hide" && targetType === "post")
+        await db
+          .collection("contentPosts")
+          .doc(targetId)
+          .set(
+            { status: "hidden", updatedAt: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+      if (decision === "hide" && targetType === "comment")
+        await db
+          .collection("contentComments")
+          .doc(targetId)
+          .set(
+            { status: "hidden", updatedAt: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+      await Promise.all([
+        reportRef.set(
+          {
+            status: decision === "hide" ? "resolved-hidden" : "dismissed",
+            resolvedBy: uid,
+            resolvedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+        db.collection("moderationActions").add({
+          reportId,
+          targetId,
+          targetType,
+          decision,
+          moderatorId: uid,
+          createdAt: FieldValue.serverTimestamp(),
+        }),
+      ]);
       return NextResponse.json({ ok: true });
     }
 

@@ -20,6 +20,10 @@ export function OperationsHub() {
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<ContentPost[]>([]);
   const [watching, setWatching] = useState<string[]>([]);
+  const [alerts, setAlerts] = useState<
+    Array<{ id: string; title: string; postId: string; signalIds: string[] }>
+  >([]);
+  const [trackProgress, setTrackProgress] = useState<Record<string, string[]>>({});
   const [notice, setNotice] = useState("");
   const [room, setRoom] = useState("");
   const [goal, setGoal] = useState("");
@@ -27,10 +31,33 @@ export function OperationsHub() {
     void getContentPosts().then(setPosts);
     return observeCommunityMember((member) => {
       setSignedIn(Boolean(member));
-      if (!member) return;
+      if (!member) {
+        setWatching([]);
+        setAlerts([]);
+        setTrackProgress({});
+        return;
+      }
       void getCommunityProfile(member.uid).then((profile) =>
         setTags([...profile.specialties, ...profile.stack]),
       );
+      void communityAction<{
+        watchlist: string[];
+        alerts: Array<{
+          id: string;
+          title: string;
+          postId: string;
+          signalIds: string[];
+        }>;
+        progress: Array<{ trackId: string; completedSteps: string[] }>;
+      }>("operations.dashboard").then((data) => {
+        setWatching(data.watchlist || []);
+        setAlerts(data.alerts || []);
+        setTrackProgress(
+          Object.fromEntries(
+            (data.progress || []).map((item) => [item.trackId, item.completedSteps]),
+          ),
+        );
+      });
     });
   }, []);
   const results = useMemo(() => {
@@ -97,6 +124,22 @@ export function OperationsHub() {
       );
     }
   }
+  async function toggleTrackStep(trackId: string, step: number) {
+    if (!signedIn) return setNotice("Entre para registrar o avanço da trilha.");
+    const current = trackProgress[trackId] || [];
+    const id = String(step + 1);
+    const completedSteps = current.includes(id)
+      ? current.filter((item) => item !== id)
+      : [...current, id];
+    try {
+      await communityAction("operations.track.progress", { trackId, completedSteps });
+      setTrackProgress((previous) => ({ ...previous, [trackId]: completedSteps }));
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : "Não foi possível registrar o passo.",
+      );
+    }
+  }
   async function submitGoal(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!signedIn) return setNotice("Entre para registrar seu objetivo.");
@@ -156,6 +199,23 @@ export function OperationsHub() {
           <Link href="/perfil/configuracoes">Completar perfil →</Link>
         </aside>
       </section>
+      {alerts.length > 0 && (
+        <section className="operations-alerts" aria-label="Alertas da watchlist">
+          <p className="auth-eyebrow">SUA WATCHLIST / NOVOS SINAIS</p>
+          <h2>Há leituras novas para sua investigação.</h2>
+          <div>
+            {alerts.slice(0, 3).map((alert) => (
+              <Link
+                key={alert.id}
+                href={`/noticias/${alert.postId.replace("radar_", "radar-")}`}
+              >
+                <span>{alert.signalIds.join(" · ")}</span>
+                <b>{alert.title}</b>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="operations-search">
         <label>
           Busca na comunidade
@@ -215,11 +275,28 @@ export function OperationsHub() {
               <span>{track.tag}</span>
               <h3>{track.title}</h3>
               <ol>
-                {track.steps.map((step) => (
-                  <li key={step}>{step}</li>
+                {track.steps.map((step, index) => (
+                  <li key={step}>
+                    <button
+                      className={
+                        trackProgress[track.id]?.includes(String(index + 1))
+                          ? "is-complete"
+                          : ""
+                      }
+                      onClick={() => toggleTrackStep(track.id, index)}
+                      type="button"
+                    >
+                      {trackProgress[track.id]?.includes(String(index + 1))
+                        ? "✓"
+                        : String(index + 1).padStart(2, "0")}
+                    </button>
+                    {step}
+                  </li>
                 ))}
               </ol>
-              <Link href="/estudos">Iniciar trilha →</Link>
+              <span className="track-progress">
+                {trackProgress[track.id]?.length || 0}/4 passos registrados
+              </span>
             </article>
           ))}
         </div>

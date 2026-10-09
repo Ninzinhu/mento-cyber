@@ -67,10 +67,32 @@ export const practiceTracks = [
   },
 ];
 
-export const weeklyCase = {
-  title: "Credenciais válidas, origem inesperada",
-  summary:
-    "Uma conta com MFA acessa um serviço em horário atípico. O desafio é separar mudança legítima de comprometimento.",
-  signals: ["Novo ASN", "Token renovado", "Download administrativo"],
-  xp: 160,
-};
+export const weeklyCases = [
+  {
+    id: "identity-shift",
+    title: "Credenciais válidas, origem inesperada",
+    summary:
+      "Uma conta com MFA acessa um serviço em horário atípico. Separe mudança legítima de comprometimento.",
+    signals: ["Novo ASN", "Token renovado", "Download administrativo"],
+    xp: 160,
+  },
+  {
+    id: "cloud-exposure",
+    title: "Snapshot público em ambiente cloud",
+    summary:
+      "Um ativo aparentemente interno passa a responder em uma rota externa. Descubra a mudança e o possível impacto.",
+    signals: ["Nova regra de rede", "Objeto enumerado", "Chave de serviço usada"],
+    xp: 180,
+  },
+  {
+    id: "endpoint-noise",
+    title: "Execução legítima ou persistência?",
+    summary:
+      "Uma ferramenta comum aparece fora da janela de manutenção. Construa uma hipótese que possa ser refutada.",
+    signals: ["Pai incomum", "Tarefa agendada", "Destino recorrente"],
+    xp: 170,
+  },
+] as const;
+
+export const weeklyCase =
+  weeklyCases[Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % weeklyCases.length];

@@ -23,6 +23,14 @@ service cloud.firestore {
     match /contentPosts/{postId} { allow read: if resource.data.status == 'published'; allow write: if false; }
     match /contentComments/{commentId} { allow read: if resource.data.status == 'published'; allow write: if false; }
     match /contentReactions/{reactionId} { allow read: if signedIn(); allow write: if false; }
+    match /contentReports/{reportId} { allow read: if moderator(); allow write: if false; }
+    match /contentReads/{readId} { allow read, write: if false; }
+    match /operationWatchlists/{watchlistId} { allow read, write: if false; }
+    match /operationAlerts/{alertId} { allow read: if owner(resource.data.uid); allow write: if false; }
+    match /operationRooms/{roomId} { allow read: if signedIn(); allow write: if false; }
+    match /trackProgress/{progressId} { allow read: if owner(resource.data.uid); allow write: if false; }
+    match /moderationActions/{actionId} { allow read: if moderator(); allow write: if false; }
+    match /newsSyncRuns/{runId} { allow read: if moderator(); allow write: if false; }
     match /newsletterSubscribers/{subscriberId} { allow read, write: if false; }
   }
 }
