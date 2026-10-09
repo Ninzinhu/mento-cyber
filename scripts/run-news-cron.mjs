@@ -1,4 +1,8 @@
-const endpoint = process.env.NEWS_CRON_URL ?? "http://localhost:3000/api/cron/news";
+const baseEndpoint = process.env.NEWS_CRON_URL ?? "http://localhost:3000/api/cron/news";
+const endpoint =
+  process.env.NEWS_CRON_REFRESH_IMAGES === "true"
+    ? `${baseEndpoint}${baseEndpoint.includes("?") ? "&" : "?"}refreshImages=1`
+    : baseEndpoint;
 const secret = process.env.CRON_SECRET;
 
 const headers = secret ? { Authorization: `Bearer ${secret}` } : {};

@@ -169,18 +169,32 @@ function decode(value: string) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&nbsp;/g, " ")
+    .replace(/&hellip;/g, "…")
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function urlAttribute(block: string, expression: RegExp) {
-  const value = block.match(expression)?.[1] || "";
+function attribute(tag: string, name: string) {
+  const match = tag.match(
+    new RegExp(`${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, "i"),
+  );
+  return match?.[1] || match?.[2] || match?.[3] || "";
+}
+
+function httpsUrl(value: string) {
   try {
     const url = new URL(decode(value));
     return url.protocol === "https:" ? url.toString() : undefined;
   } catch {
     return undefined;
   }
+}
+
+function urlAttribute(block: string, expression: RegExp) {
+  const value = block.match(expression)?.[1] || "";
+  return httpsUrl(value);
 }
 
 function imageFrom(block: string) {
@@ -195,18 +209,36 @@ function imageFrom(block: string) {
 }
 
 function metaContent(html: string, property: string) {
-  const escaped = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const patterns = [
-    new RegExp(
-      `<meta[^>]+(?:property|name)=["']${escaped}["'][^>]+content=["']([^"']+)["'][^>]*>`,
-      "i",
-    ),
-    new RegExp(
-      `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${escaped}["'][^>]*>`,
-      "i",
-    ),
-  ];
-  return patterns.map((pattern) => pattern.exec(html)?.[1] || "").find(Boolean) || "";
+  const tag = (html.match(/<meta\b[^>]*>/gi) || []).find((candidate) => {
+    const key = attribute(candidate, "property") || attribute(candidate, "name");
+    return key.toLowerCase() === property.toLowerCase();
+  });
+  return tag ? attribute(tag, "content") : "";
+}
+
+function articleImage(html: string) {
+  const candidates = (html.match(/<img\b[^>]*>/gi) || [])
+    .map((tag) => {
+      const source =
+        attribute(tag, "data-src") ||
+        attribute(tag, "data-lazy-src") ||
+        attribute(tag, "src");
+      const url = httpsUrl(source);
+      const hint =
+        `${attribute(tag, "class")} ${attribute(tag, "alt")} ${source}`.toLowerCase();
+      const score =
+        (/(wp-post-image|featured|post-thumbnail|entry-content|attachment)/.test(hint)
+          ? 8
+          : 0) +
+        (/wp-content\/uploads|\/uploads\//.test(hint) ? 4 : 0) -
+        (/(logo|avatar|icon|advert|banner|sponsor|tracking)/.test(hint) ? 12 : 0);
+      return { url, score };
+    })
+    .filter((candidate): candidate is { url: string; score: number } =>
+      Boolean(candidate.url),
+    )
+    .sort((first, second) => second.score - first.score);
+  return candidates[0]?.url;
 }
 
 function trustedArticleUrl(value: string) {
@@ -254,8 +286,15 @@ async function enrichFromSource(item: FeedItem) {
       return item;
     const html = (await response.text()).slice(0, 350_000);
     const imageUrl =
-      urlAttribute(metaContent(html, "og:image"), /^(https:\/\/[^\s]+)$/i) ||
-      urlAttribute(metaContent(html, "twitter:image"), /^(https:\/\/[^\s]+)$/i) ||
+      httpsUrl(metaContent(html, "og:image")) ||
+      httpsUrl(metaContent(html, "twitter:image")) ||
+      httpsUrl(
+        attribute(
+          html.match(/<link\b[^>]*rel=["']image_src["'][^>]*>/i)?.[0] || "",
+          "href",
+        ),
+      ) ||
+      articleImage(html) ||
       item.imageUrl;
     const description = decode(
       metaContent(html, "og:description") || metaContent(html, "description"),
@@ -357,6 +396,9 @@ export async function GET(request: Request) {
   }
 
   const db = adminDb();
+  const forceImageRefresh =
+    new URL(request.url).searchParams.get("refreshImages") === "1";
+  const enrichmentLimit = forceImageRefresh ? 80 : 24;
   const results = await Promise.allSettled(
     feeds.map(async (feed) => {
       const response = await fetch(feed.url, {
@@ -381,7 +423,8 @@ export async function GET(request: Request) {
       canonicalUrl(String(item.data().sourceUrl || "")),
       {
         ref: item.ref,
-        needsImageEnrichment: !item.data().imageUrl && !item.data().imageCheckedAt,
+        needsImageEnrichment:
+          !item.data().imageUrl && (forceImageRefresh || !item.data().imageCheckedAt),
       },
     ]),
   );
@@ -401,7 +444,7 @@ export async function GET(request: Request) {
       const titleKey = canonicalTitle(item.title);
       const existingPost = existingByUrl.get(sourceUrl);
       if (existingPost || knownTitles.has(titleKey)) {
-        if (existingPost?.needsImageEnrichment && enrichments.length < 24)
+        if (existingPost?.needsImageEnrichment && enrichments.length < enrichmentLimit)
           enrichments.push({
             ref: existingPost.ref,
             item: { ...item, url: sourceUrl },
@@ -437,7 +480,7 @@ export async function GET(request: Request) {
         ref,
         needsImageEnrichment: !item.imageUrl,
       });
-      if (!item.imageUrl && enrichments.length < 24)
+      if (!item.imageUrl && enrichments.length < enrichmentLimit)
         enrichments.push({ ref, item: { ...item, url: sourceUrl } });
       count += 1;
     }
