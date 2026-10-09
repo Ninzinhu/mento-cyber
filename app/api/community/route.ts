@@ -277,12 +277,14 @@ export async function POST(request: Request) {
     if (action === "content.comment.create") {
       const postId = text(payload.postId, 128);
       const body = text(payload.body, 800);
+      const parentCommentId = text(payload.parentCommentId, 128);
       if (!postId || body.length < 8)
         return error("Escreva uma resposta com ao menos 8 caracteres.");
       if (/https?:\/\//i.test(body))
         return error("Links não são permitidos em respostas por enquanto.");
       const postRef = db.collection("contentPosts").doc(postId);
       const commentRef = db.collection("contentComments").doc();
+      let postSlug = "";
       await db.runTransaction(async (transaction) => {
         const [post, profile] = await Promise.all([
           transaction.get(postRef),
@@ -290,7 +292,15 @@ export async function POST(request: Request) {
         ]);
         if (!post.exists || post.data()?.status !== "published")
           throw new Error("Discussão não encontrada.");
+        postSlug = text(post.data()?.slug, 100);
         if (!profile.exists) throw new Error("Perfil não encontrado.");
+        if (parentCommentId) {
+          const parent = await transaction.get(
+            db.collection("contentComments").doc(parentCommentId),
+          );
+          if (!parent.exists || parent.data()?.postId !== postId)
+            throw new Error("Resposta de origem inválida.");
+        }
         const latest = profile.data()?.lastCommentAt;
         if (latest?.toMillis && Date.now() - latest.toMillis() < 20 * 1000)
           throw new Error("Aguarde alguns segundos antes de enviar outra resposta.");
@@ -300,6 +310,7 @@ export async function POST(request: Request) {
           authorName: text(profile.data()?.displayName, 60) || "Membro",
           body,
           status: "published",
+          parentCommentId: parentCommentId || null,
           createdAt: FieldValue.serverTimestamp(),
         });
         transaction.update(postRef, {
@@ -316,7 +327,53 @@ export async function POST(request: Request) {
           { xp: FieldValue.increment(5), updatedAt: FieldValue.serverTimestamp() },
           { merge: true },
         );
+        const authorId = text(post.data()?.authorId, 128);
+        if (authorId && authorId !== uid) {
+          const kind = text(post.data()?.kind, 20);
+          const base = kind === "article" ? "/artigos" : "/discussoes";
+          transaction.set(
+            db.collection("communityNotifications").doc(`comment_${commentRef.id}`),
+            {
+              uid: authorId,
+              kind: "comment",
+              title: "Uma pessoa respondeu ao seu conteúdo.",
+              href: `${base}/${text(post.data()?.slug, 100)}`,
+              createdAt: FieldValue.serverTimestamp(),
+            },
+          );
+        }
       });
+      const mentionedHandles = [
+        ...new Set(
+          Array.from(body.matchAll(/@([a-zA-Z0-9_-]{3,24})/g)).map((item) => item[1]),
+        ),
+      ].slice(0, 3);
+      if (mentionedHandles.length) {
+        const recipients = await Promise.all(
+          mentionedHandles.map((handle) =>
+            db
+              .collection("memberProfiles")
+              .where("handle", "==", handle)
+              .limit(1)
+              .get(),
+          ),
+        );
+        await Promise.all(
+          recipients.flatMap((snapshot) =>
+            snapshot.docs
+              .filter((item) => item.id !== uid)
+              .map((item) =>
+                db.collection("communityNotifications").add({
+                  uid: item.id,
+                  kind: "mention",
+                  title: "Você foi mencionado em uma discussão.",
+                  href: `/discussoes/${postSlug}`,
+                  createdAt: FieldValue.serverTimestamp(),
+                }),
+              ),
+          ),
+        );
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -958,7 +1015,9 @@ export async function POST(request: Request) {
           return {
             id: item.id,
             title: text(data.title, 180),
-            href: safeUrl(data.href) || "/perfil",
+            href: text(data.href, 240).startsWith("/")
+              ? text(data.href, 240)
+              : "/perfil",
             kind: text(data.kind, 40),
           };
         }),
@@ -1181,6 +1240,19 @@ export async function POST(request: Request) {
             createdAt: FieldValue.serverTimestamp(),
           });
         else await followRef.delete();
+        if (enabled) {
+          const source = await profileRef.get();
+          await db
+            .collection("communityNotifications")
+            .doc(`follow_${uid}_${targetId}`)
+            .set({
+              uid: targetId,
+              kind: "follow",
+              title: `${text(source.data()?.displayName, 60) || "Uma pessoa"} começou a seguir você.`,
+              href: "/perfil/conexoes",
+              createdAt: FieldValue.serverTimestamp(),
+            });
+        }
       } else {
         const field = action === "network.save" ? "savedProfileIds" : "blockedUserIds";
         const update: Record<string, unknown> = {
@@ -1241,6 +1313,13 @@ export async function POST(request: Request) {
         status: "pending",
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
+      });
+      await db.collection("communityNotifications").add({
+        uid: targetId,
+        kind: "invite",
+        title: `${text(sender.data()!.displayName, 60) || "Uma pessoa"} enviou um convite de ${kind === "mentorship" ? "mentoria" : "colaboração"}.`,
+        href: "/perfil/convites",
+        createdAt: FieldValue.serverTimestamp(),
       });
       return NextResponse.json({ ok: true });
     }

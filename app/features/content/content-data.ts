@@ -34,6 +34,7 @@ export type ContentComment = {
   body: string;
   createdAt: string;
   bestAnswer: boolean;
+  parentCommentId?: string;
 };
 
 export async function getContentComments(postId: string) {
@@ -56,6 +57,10 @@ export async function getContentComments(postId: string) {
         body: String(item.data().body || ""),
         createdAt: asDate(item.data().createdAt),
         bestAnswer: item.data().bestAnswer === true,
+        parentCommentId:
+          typeof item.data().parentCommentId === "string"
+            ? item.data().parentCommentId
+            : undefined,
       }))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   } catch {

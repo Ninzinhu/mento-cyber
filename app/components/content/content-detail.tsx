@@ -35,6 +35,8 @@ export function ContentDetail({
   const [notice, setNotice] = useState("");
   const [imageFailed, setImageFailed] = useState(false);
   const [reacted, setReacted] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [replyTo, setReplyTo] = useState<ContentComment | null>(null);
   useEffect(() => {
     getContentPosts().then((items) => {
       const current =
@@ -51,6 +53,7 @@ export function ContentDetail({
     return observeCommunityMember((member) => {
       setSignedIn(Boolean(member));
       setMemberId(member?.uid || null);
+      if (!member) setSaved(false);
     });
   }, [discussionOnly, newsOnly, slug]);
   useEffect(() => {
@@ -59,12 +62,23 @@ export function ContentDetail({
       () => undefined,
     );
   }, [memberId, post]);
+  useEffect(() => {
+    if (!memberId || !post) return;
+    void communityAction<{ postIds: string[] }>("content.saved.list")
+      .then((data) => setSaved(data.postIds?.includes(post.id) || false))
+      .catch(() => setSaved(false));
+  }, [memberId, post]);
   async function comment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!post || body.trim().length < 8) return;
     try {
-      await communityAction("content.comment.create", { postId: post.id, body });
+      await communityAction("content.comment.create", {
+        postId: post.id,
+        body,
+        parentCommentId: replyTo?.id || "",
+      });
       setBody("");
+      setReplyTo(null);
       setComments(await getContentComments(post.id));
     } catch (error) {
       setNotice(
@@ -96,6 +110,20 @@ export function ContentDetail({
     } catch (error) {
       setNotice(
         error instanceof Error ? error.message : "Não foi possível enviar a denúncia.",
+      );
+    }
+  }
+  async function toggleSaved() {
+    if (!post) return;
+    try {
+      await communityAction("content.save.toggle", {
+        postId: post.id,
+        enabled: !saved,
+      });
+      setSaved((current) => !current);
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : "Não foi possível salvar este item.",
       );
     }
   }
@@ -192,6 +220,15 @@ export function ContentDetail({
           {signedIn && (
             <button
               className="content-quiet-action"
+              onClick={toggleSaved}
+              type="button"
+            >
+              {saved ? "Salvo" : "Salvar para depois"}
+            </button>
+          )}
+          {signedIn && (
+            <button
+              className="content-quiet-action"
               onClick={() => report(post.id, "post")}
               type="button"
             >
@@ -224,6 +261,9 @@ export function ContentDetail({
               <p>{item.body}</p>
               {signedIn && (
                 <div className="content-comment-actions">
+                  <button onClick={() => setReplyTo(item)} type="button">
+                    Responder
+                  </button>
                   {post.authorId === memberId && post.bestCommentId !== item.id && (
                     <button onClick={() => markBest(item.id)} type="button">
                       Marcar como melhor
@@ -242,10 +282,18 @@ export function ContentDetail({
           ))}
           {signedIn ? (
             <form onSubmit={comment}>
+              {replyTo && (
+                <p className="content-replying">
+                  Respondendo a <b>{replyTo.authorName}</b>{" "}
+                  <button onClick={() => setReplyTo(null)} type="button">
+                    Cancelar
+                  </button>
+                </p>
+              )}
               <textarea
                 minLength={8}
                 onChange={(event) => setBody(event.target.value)}
-                placeholder="Contribua com contexto, evidência ou uma pergunta útil."
+                placeholder="Contribua com contexto, evidência ou uma pergunta útil. Use @usuario para mencionar alguém."
                 required
                 value={body}
               />
