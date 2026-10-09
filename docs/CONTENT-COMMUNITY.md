@@ -27,7 +27,20 @@ o script: `$env:NEWS_CRON_URL="https://seu-dominio/api/cron/news"; $env:CRON_SEC
 `/api/cron/news` agrega feeds RSS/Atom públicos, sanitiza HTML, limita o tamanho
 do excerto e deduplica cada item pelo hash da URL de origem. As fontes iniciais
 são CISA, Google Online Security, BleepingComputer, Krebs on Security e The
-Hacker News.
+Hacker News. O catálogo também inclui fontes brasileiras e internacionais de
+segurança, ataques, vazamentos, malware, golpes e tecnologia. Fontes gerais de
+tecnologia passam por filtro de assunto antes da publicação.
+
+Cada item é deduplicado pela URL canônica e pelo título normalizado. O sistema
+armazena apenas os metadados e direciona o leitor à publicação original.
+
+## Tradução no site
+
+Na página de uma notícia, membros autenticados podem traduzir o título e o
+resumo para o idioma do navegador. A integração é server-side e usa
+`GOOGLE_TRANSLATE_API_KEY` ou uma instância configurada em `LIBRETRANSLATE_URL`;
+essas credenciais nunca são enviadas ao navegador. A matéria completa continua
+na fonte original.
 
 No Vercel Hobby, a agenda configurada roda diariamente às 12:00 UTC. Planos Pro
 podem alterar `vercel.json` para atualizações mais frequentes. Configure

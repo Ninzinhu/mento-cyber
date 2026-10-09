@@ -3,20 +3,8 @@
 /* eslint-disable @next/next/no-img-element -- Public RSS feeds use varying image hosts. */
 
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  BookOpenText,
-  Languages,
-  MessageSquareText,
-  Radio,
-} from "lucide-react";
-import {
-  type KeyboardEvent,
-  type MouseEvent,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { ArrowUpRight, BookOpenText, MessageSquareText, Radio } from "lucide-react";
+import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { getContentPosts } from "../../features/content/content-data";
 import {
   contentLabel,
@@ -45,6 +33,8 @@ export function ContentHub({
   const [posts, setPosts] = useState<ContentPost[]>([]);
   const [kind, setKind] = useState<ContentKind | "all">(initialKind);
   const [tag, setTag] = useState("Todos");
+  const [search, setSearch] = useState("");
+  const [region, setRegion] = useState("Todas");
   const [loading, setLoading] = useState(true);
 
   const refreshPosts = async () => {
@@ -68,12 +58,17 @@ export function ContentHub({
 
   const visible = useMemo(
     () =>
-      posts.filter(
-        (post) =>
+      posts.filter((post) => {
+        const haystack =
+          `${post.title} ${post.excerpt} ${post.tags.join(" ")} ${post.sourceName || ""}`.toLowerCase();
+        return (
           (kind === "all" || post.kind === kind) &&
-          (tag === "Todos" || post.tags.includes(tag)),
-      ),
-    [kind, posts, tag],
+          (tag === "Todos" || post.tags.includes(tag)) &&
+          (region === "Todas" || post.region === region) &&
+          (!search.trim() || haystack.includes(search.trim().toLowerCase()))
+        );
+      }),
+    [kind, posts, region, search, tag],
   );
 
   return (
@@ -126,6 +121,25 @@ export function ContentHub({
             ))}
           </select>
         </label>
+        {initialKind === "radar" && (
+          <label>
+            Região
+            <select onChange={(event) => setRegion(event.target.value)} value={region}>
+              <option>Todas</option>
+              <option>Brasil</option>
+              <option>Global</option>
+            </select>
+          </label>
+        )}
+        <label className="content-search">
+          Pesquisar
+          <input
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="CVE, malware, vazamento…"
+            type="search"
+            value={search}
+          />
+        </label>
       </section>
       <section className="content-grid" aria-live="polite">
         {loading ? (
@@ -173,13 +187,9 @@ export function ContentCard({ post }: { post: ContentPost }) {
       ? `/discussoes/${post.slug}`
       : post.kind === "article"
         ? `/artigos/${post.slug}`
-        : post.sourceUrl || "/noticias";
-  const external = post.kind === "radar" && Boolean(post.sourceUrl);
+        : `/noticias/${post.slug}`;
+  const [imageFailed, setImageFailed] = useState(false);
   const openPost = () => {
-    if (external) {
-      window.open(href, "_blank", "noopener,noreferrer");
-      return;
-    }
     window.location.assign(href);
   };
   const openFromKeyboard = (event: KeyboardEvent<HTMLElement>) => {
@@ -188,31 +198,27 @@ export function ContentCard({ post }: { post: ContentPost }) {
       openPost();
     }
   };
-  const translateUrl = post.sourceUrl
-    ? `https://translate.google.com/translate?sl=auto&tl=pt&u=${encodeURIComponent(post.sourceUrl)}`
-    : undefined;
-  const openTranslation = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!post.sourceUrl) return;
-    const browserLanguage = navigator.language.split("-")[0] || "pt";
-    const target = `https://translate.google.com/translate?sl=auto&tl=${encodeURIComponent(browserLanguage)}&u=${encodeURIComponent(post.sourceUrl)}`;
-    window.open(target, "_blank", "noopener,noreferrer");
-  };
 
   return (
     <article
-      className={`content-card content-card-${post.kind} ${external ? "content-card-open" : ""}`}
-      onClick={external ? openPost : undefined}
-      onKeyDown={external ? openFromKeyboard : undefined}
-      role={external ? "link" : undefined}
-      tabIndex={external ? 0 : undefined}
+      className={`content-card content-card-${post.kind} content-card-open`}
+      onClick={openPost}
+      onKeyDown={openFromKeyboard}
+      role="link"
+      tabIndex={0}
     >
-      {post.imageUrl ? (
-        <div className="content-card-image" aria-hidden="true">
-          <img alt="" loading="lazy" src={post.imageUrl} />
-        </div>
-      ) : null}
+      <div className="content-card-image" aria-hidden="true">
+        {post.imageUrl && !imageFailed ? (
+          <img
+            alt=""
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+            src={post.imageUrl}
+          />
+        ) : (
+          <span>{post.sourceName || contentLabel(post.kind)}</span>
+        )}
+      </div>
       <div className="content-card-kind">
         {iconFor(post.kind)}
         <span>{contentLabel(post.kind)}</span>
@@ -230,25 +236,24 @@ export function ContentCard({ post }: { post: ContentPost }) {
           {post.authorName} · {formatContentDate(post.publishedAt)}
         </span>
         <div className="content-card-actions">
-          <Link
-            href={href}
-            onClick={(event) => event.stopPropagation()}
-            rel={external ? "noreferrer" : undefined}
-            target={external ? "_blank" : undefined}
-          >
-            {external ? "Ler fonte" : post.kind === "discussion" ? "Participar" : "Ler"}{" "}
+          <Link href={href} onClick={(event) => event.stopPropagation()}>
+            {post.kind === "radar"
+              ? "Abrir notícia"
+              : post.kind === "discussion"
+                ? "Participar"
+                : "Ler"}{" "}
             <ArrowUpRight size={14} />
           </Link>
-          {translateUrl ? (
+          {post.kind === "radar" && post.sourceUrl ? (
             <a
               className="content-translate"
-              href={translateUrl}
-              onClick={openTranslation}
+              href={post.sourceUrl}
+              onClick={(event) => event.stopPropagation()}
               rel="noreferrer"
               target="_blank"
-              title="Traduzir para o idioma do navegador"
+              title="Abrir publicação original"
             >
-              <Languages size={14} /> Traduzir
+              Fonte <ArrowUpRight size={14} />
             </a>
           ) : null}
         </div>

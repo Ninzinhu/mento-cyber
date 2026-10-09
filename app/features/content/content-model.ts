@@ -20,6 +20,12 @@ export const contentTags = [
   "Incidentes",
   "Vulnerabilidades",
   "Privacidade",
+  "Malware",
+  "Golpes",
+  "Vazamentos",
+  "Ataques",
+  "Segurança",
+  "Tecnologia",
 ] as const;
 
 export type ContentPost = {
@@ -34,7 +40,9 @@ export type ContentPost = {
   authorId?: string;
   sourceName?: string;
   sourceUrl?: string;
+  region?: "Brasil" | "Global";
   imageUrl?: string;
+  translations?: Record<string, { title: string; excerpt: string }>;
   publishedAt: string;
   readingMinutes?: number;
   reactionCount?: number;

@@ -17,6 +17,28 @@ function asDate(value: unknown) {
 }
 
 function serializePost(id: string, value: Record<string, unknown>): ContentPost {
+  const translations =
+    value.translations && typeof value.translations === "object"
+      ? Object.fromEntries(
+          Object.entries(value.translations as Record<string, unknown>).flatMap(
+            ([language, translation]) =>
+              translation &&
+              typeof translation === "object" &&
+              typeof (translation as Record<string, unknown>).title === "string" &&
+              typeof (translation as Record<string, unknown>).excerpt === "string"
+                ? [
+                    [
+                      language,
+                      {
+                        title: (translation as Record<string, string>).title,
+                        excerpt: (translation as Record<string, string>).excerpt,
+                      },
+                    ],
+                  ]
+                : [],
+          ),
+        )
+      : undefined;
   return {
     id,
     kind: contentKinds.includes(value.kind as ContentKind)
@@ -33,7 +55,10 @@ function serializePost(id: string, value: Record<string, unknown>): ContentPost 
     authorId: typeof value.authorId === "string" ? value.authorId : undefined,
     sourceName: typeof value.sourceName === "string" ? value.sourceName : undefined,
     sourceUrl: typeof value.sourceUrl === "string" ? value.sourceUrl : undefined,
+    region:
+      value.region === "Brasil" || value.region === "Global" ? value.region : undefined,
     imageUrl: typeof value.imageUrl === "string" ? value.imageUrl : undefined,
+    translations,
     publishedAt: asDate(value.publishedAt),
     readingMinutes: Number(value.readingMinutes || 2),
     reactionCount: Number(value.reactionCount || 0),

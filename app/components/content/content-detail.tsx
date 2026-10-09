@@ -1,6 +1,9 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- News images come from varying public RSS hosts. */
+
 import Link from "next/link";
+import { Languages } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { ContentNav } from "./content-hub";
 import {
@@ -19,27 +22,37 @@ import { communityAction } from "../../features/community/server-action";
 export function ContentDetail({
   slug,
   discussionOnly = false,
+  newsOnly = false,
 }: {
   slug: string;
   discussionOnly?: boolean;
+  newsOnly?: boolean;
 }) {
   const [post, setPost] = useState<ContentPost | null>(null);
   const [comments, setComments] = useState<ContentComment[]>([]);
   const [body, setBody] = useState("");
   const [signedIn, setSignedIn] = useState(false);
   const [notice, setNotice] = useState("");
+  const [translation, setTranslation] = useState<{
+    language: string;
+    title: string;
+    excerpt: string;
+  } | null>(null);
+  const [translating, setTranslating] = useState(false);
   useEffect(() => {
     getContentPosts().then((items) => {
       const current =
         items.find(
           (item) =>
-            item.slug === slug && (!discussionOnly || item.kind === "discussion"),
+            item.slug === slug &&
+            (!discussionOnly || item.kind === "discussion") &&
+            (!newsOnly || item.kind === "radar"),
         ) || null;
       setPost(current);
       if (current) getContentComments(current.id).then(setComments);
     });
     return observeCommunityMember((member) => setSignedIn(Boolean(member)));
-  }, [discussionOnly, slug]);
+  }, [discussionOnly, newsOnly, slug]);
   async function comment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!post || body.trim().length < 8) return;
@@ -53,6 +66,29 @@ export function ContentDetail({
       );
     }
   }
+  async function translateNews() {
+    if (!post) return;
+    const language = navigator.language.split("-")[0]?.toLowerCase() || "pt";
+    const cached = post.translations?.[language];
+    if (cached) {
+      setTranslation({ language, ...cached });
+      return;
+    }
+    setTranslating(true);
+    setNotice("");
+    try {
+      const result = await communityAction<{
+        translation: { language: string; title: string; excerpt: string };
+      }>("content.news.translate", { postId: post.id, language });
+      setTranslation(result.translation);
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : "Não foi possível traduzir agora.",
+      );
+    } finally {
+      setTranslating(false);
+    }
+  }
   if (!post)
     return (
       <main className="content-page">
@@ -64,11 +100,24 @@ export function ContentDetail({
     <main className="content-page">
       <ContentNav />
       <article className="content-detail">
-        <Link href={post.kind === "discussion" ? "/discussoes" : "/conteudos"}>
+        <Link
+          href={
+            post.kind === "discussion"
+              ? "/discussoes"
+              : post.kind === "radar"
+                ? "/noticias"
+                : "/conteudos"
+          }
+        >
           ← Voltar
         </Link>
+        {post.imageUrl && (
+          <div className="content-detail-image">
+            <img alt="" src={post.imageUrl} />
+          </div>
+        )}
         <p className="auth-eyebrow">{contentLabel(post.kind).toUpperCase()}</p>
-        <h1>{post.title}</h1>
+        <h1>{translation?.title || post.title}</h1>
         <div className="content-detail-meta">
           {post.authorName} · {formatContentDate(post.publishedAt)} ·{" "}
           {post.readingMinutes || 2} min
@@ -78,7 +127,28 @@ export function ContentDetail({
             <span key={tag}>{tag}</span>
           ))}
         </div>
-        <p className="content-detail-body">{post.body || post.excerpt}</p>
+        <p className="content-detail-body">
+          {translation?.excerpt || post.body || post.excerpt}
+        </p>
+        {post.kind === "radar" && (
+          <section className="content-translation">
+            <div>
+              <b>Tradução no MentoCyber</b>
+              <span>
+                Traduzimos título e resumo; a matéria completa permanece na fonte
+                original.
+              </span>
+            </div>
+            {signedIn ? (
+              <button disabled={translating} onClick={translateNews} type="button">
+                <Languages size={15} />
+                {translating ? "Traduzindo…" : "Traduzir para meu idioma"}
+              </button>
+            ) : (
+              <Link href="/entrar">Entre para traduzir</Link>
+            )}
+          </section>
+        )}
         {post.sourceUrl && (
           <a
             className="content-source"
@@ -89,6 +159,7 @@ export function ContentDetail({
             Abrir fonte original: {post.sourceName || "referência externa"} ↗
           </a>
         )}
+        {notice && <p aria-live="polite">{notice}</p>}
       </article>
       {post.kind === "discussion" && (
         <section className="content-comments">

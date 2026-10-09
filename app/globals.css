@@ -8135,6 +8135,7 @@ button:focus-visible {
   font-weight: 800;
 }
 .content-filters select,
+.content-filters input,
 .discussion-composer input,
 .discussion-composer textarea,
 .discussion-composer select,
@@ -8148,6 +8149,14 @@ button:focus-visible {
 .content-filters select {
   padding: 7px;
   font-size: 0.7rem;
+}
+.content-search {
+  min-width: min(240px, 100%);
+}
+.content-filters input {
+  width: 100%;
+  padding: 7px 9px;
+  font-size: 0.72rem;
 }
 .content-grid {
   display: grid;
@@ -8235,6 +8244,20 @@ button:focus-visible {
   overflow: hidden;
   border-bottom: 1px solid #34343b;
   background: #202026;
+}
+.content-card-image span {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background:
+    linear-gradient(135deg, transparent 0 42%, #303038 42% 43%, transparent 43% 100%),
+    repeating-linear-gradient(90deg, #17171b 0 18px, #202026 18px 19px);
+  color: #c8c8d0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .content-card-image img {
   display: block;
@@ -8380,6 +8403,19 @@ button:focus-visible {
 .content-detail h1 {
   font-size: clamp(2.25rem, 5vw, 4.5rem);
 }
+.content-detail-image {
+  max-height: 360px;
+  margin: 24px 0 28px;
+  overflow: hidden;
+  border: 1px solid #37373e;
+  background: #17171b;
+}
+.content-detail-image img {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+}
 .content-detail-meta {
   color: #a5a5ad;
   font-size: 0.76rem;
@@ -8397,6 +8433,41 @@ button:focus-visible {
   border: 1px solid #5a5a62;
   color: #f4f4f5;
   font-size: 0.76rem;
+}
+.content-translation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 24px 0;
+  padding: 14px;
+  border: 1px solid #39393f;
+  background: #17171a;
+}
+.content-translation div {
+  display: grid;
+  gap: 4px;
+}
+.content-translation b,
+.content-translation span,
+.content-translation a,
+.content-translation button {
+  font-size: 0.72rem;
+}
+.content-translation span {
+  color: #9b9ba5;
+}
+.content-translation button,
+.content-translation a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 9px 11px;
+  border: 1px solid #f3f3f5;
+  background: #f3f3f5;
+  color: #0b0b0d;
+  font-weight: 800;
 }
 .content-comments {
   max-width: 760px;

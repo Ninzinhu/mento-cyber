@@ -4,6 +4,7 @@ import { adminAuth, adminDb } from "../../lib/firebase-admin";
 import { getLabById, labSimulation } from "../../features/labs/catalog";
 import { validatesLabChallenge } from "../../features/labs/lab-challenge";
 import { contentTags } from "../../features/content/content-model";
+import { targetLanguage, translateNewsMetadata } from "../../lib/content-translation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -247,6 +248,56 @@ export async function POST(request: Request) {
         });
       });
       return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.news.translate") {
+      const postId = text(payload.postId, 128);
+      const language = targetLanguage(payload.language);
+      const [post, profile] = await Promise.all([
+        db.collection("contentPosts").doc(postId).get(),
+        profileRef.get(),
+      ]);
+      if (
+        !post.exists ||
+        post.data()?.kind !== "radar" ||
+        post.data()?.status !== "published"
+      )
+        return error("Notícia não encontrada.", 404);
+      if (!profile.exists) return error("Perfil não encontrado.", 404);
+      const cached = post.data()?.translations?.[language];
+      if (cached?.title && cached?.excerpt)
+        return NextResponse.json({
+          translation: { language, title: cached.title, excerpt: cached.excerpt },
+        });
+      const latest = profile.data()?.lastNewsTranslationAt;
+      if (latest?.toMillis && Date.now() - latest.toMillis() < 5_000)
+        return error("Aguarde alguns segundos antes de traduzir outro item.", 429);
+      const translation = await translateNewsMetadata(
+        {
+          title: text(post.data()?.title, 240),
+          excerpt: text(post.data()?.excerpt, 1400),
+        },
+        language,
+      );
+      await Promise.all([
+        post.ref.set(
+          {
+            translations: {
+              [language]: {
+                title: text(translation.title, 240),
+                excerpt: text(translation.excerpt, 1400),
+                translatedAt: FieldValue.serverTimestamp(),
+              },
+            },
+          },
+          { merge: true },
+        ),
+        profileRef.set(
+          { lastNewsTranslationAt: FieldValue.serverTimestamp() },
+          { merge: true },
+        ),
+      ]);
+      return NextResponse.json({ translation: { language, ...translation } });
     }
 
     if (action === "profile.update") {
