@@ -145,7 +145,10 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
               >
                 <span>
                   {member.photoURL ? (
-                    <img alt="" src={member.photoURL} />
+                    <i
+                      aria-hidden="true"
+                      style={{ backgroundImage: `url(${member.photoURL})` }}
+                    />
                   ) : (
                     member.displayName.slice(0, 2).toUpperCase()
                   )}

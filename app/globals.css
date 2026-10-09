@@ -7375,10 +7375,11 @@ button:focus-visible {
   font-size: 0.66rem;
   font-weight: 900;
 }
-.site-header__member img {
+.site-header__member i {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  background-position: center;
+  background-size: cover;
 }
 .site-header__member small {
   display: grid;
