@@ -31,6 +31,8 @@ service cloud.firestore {
     match /trackProgress/{progressId} { allow read: if owner(resource.data.uid); allow write: if false; }
     match /moderationActions/{actionId} { allow read: if moderator(); allow write: if false; }
     match /newsSyncRuns/{runId} { allow read: if moderator(); allow write: if false; }
+    match /communityNotifications/{notificationId} { allow read: if owner(resource.data.uid); allow write: if false; }
+    match /savedContent/{savedId} { allow read: if owner(resource.data.uid); allow write: if false; }
     match /newsletterSubscribers/{subscriberId} { allow read, write: if false; }
   }
 }

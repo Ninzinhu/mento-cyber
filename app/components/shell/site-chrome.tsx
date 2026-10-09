@@ -1,25 +1,8 @@
 import Link from "next/link";
+import { SiteHeader as InteractiveSiteHeader } from "./site-header";
 
 export function SiteHeader() {
-  return (
-    <header className="wrap nav">
-      <Link className="brand" href="/">
-        MENTO<span>CYBER</span>
-      </Link>
-      <nav className="navlinks" aria-label="Navegação principal">
-        <a href="#biblioteca">Base aberta</a>
-        <Link href="/conteudos">Conteúdos</Link>
-        <Link href="/noticias">Notícias</Link>
-        <Link href="/operacoes">Operações</Link>
-        <Link href="/estudos">Missões</Link>
-        <Link href="/labs">Labs</Link>
-        <Link href="/perfil">Perfil</Link>
-        <Link className="action nav-join" href="/registro">
-          Participar
-        </Link>
-      </nav>
-    </header>
-  );
+  return <InteractiveSiteHeader />;
 }
 
 export function SiteFooter() {

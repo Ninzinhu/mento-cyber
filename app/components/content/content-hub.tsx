@@ -16,6 +16,7 @@ import {
 import { getCommunityProfile } from "../../features/community/profile-data";
 import { observeCommunityMember } from "../../features/community/community-data";
 import { ArticleComposer } from "./article-composer";
+import { SiteHeader } from "../shell/site-header";
 
 const kinds: Array<ContentKind | "all"> = ["all", "article", "discussion", "radar"];
 
@@ -236,21 +237,7 @@ export function ContentHub({
 }
 
 export function ContentNav() {
-  return (
-    <header className="profile-topbar content-topbar">
-      <Link className="auth-brand" href="/">
-        MENTO<span>CYBER</span>
-      </Link>
-      <nav>
-        <Link href="/conteudos">Conteúdos</Link>
-        <Link href="/discussoes">Discussões</Link>
-        <Link href="/noticias">Notícias</Link>
-        <Link href="/operacoes">Operações</Link>
-        <Link href="/newsletter">Newsletter</Link>
-        <Link href="/perfil">Perfil</Link>
-      </nav>
-    </header>
-  );
+  return <SiteHeader compact />;
 }
 
 export function ContentCard({ post }: { post: ContentPost }) {

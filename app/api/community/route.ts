@@ -927,6 +927,62 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    if (action === "community.dashboard") {
+      const [notifications, operationAlerts] = await Promise.all([
+        db.collection("communityNotifications").where("uid", "==", uid).limit(12).get(),
+        db.collection("operationAlerts").where("uid", "==", uid).limit(8).get(),
+      ]);
+      const alerts = [
+        ...notifications.docs.map((item) => {
+          const data = item.data();
+          return {
+            id: item.id,
+            title: text(data.title, 180),
+            href: safeUrl(data.href) || "/perfil",
+            kind: text(data.kind, 40),
+          };
+        }),
+        ...operationAlerts.docs.map((item) => {
+          const data = item.data();
+          const postId = text(data.postId, 128);
+          return {
+            id: item.id,
+            title: `Watchlist: ${text(data.title, 160)}`,
+            href: postId.startsWith("radar_")
+              ? `/noticias/${postId.replace("radar_", "radar-")}`
+              : "/operacoes",
+            kind: "watchlist",
+          };
+        }),
+      ];
+      return NextResponse.json({ alerts });
+    }
+
+    if (action === "content.save.toggle") {
+      const postId = text(payload.postId, 128);
+      const enabled = payload.enabled === true;
+      if (!postId) return error("Conteúdo inválido.");
+      const post = await db.collection("contentPosts").doc(postId).get();
+      if (!post.exists || post.data()?.status !== "published")
+        return error("Conteúdo não encontrado.", 404);
+      const ref = db.collection("savedContent").doc(`${uid}_${postId}`);
+      if (enabled)
+        await ref.set({ uid, postId, createdAt: FieldValue.serverTimestamp() });
+      else await ref.delete();
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.saved.list") {
+      const saved = await db
+        .collection("savedContent")
+        .where("uid", "==", uid)
+        .limit(80)
+        .get();
+      return NextResponse.json({
+        postIds: saved.docs.map((item) => text(item.data().postId, 128)),
+      });
+    }
+
     if (action === "operations.dashboard") {
       const [watchlist, alerts, progress] = await Promise.all([
         db.collection("operationWatchlists").doc(uid).get(),
