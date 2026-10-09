@@ -8,6 +8,7 @@ export function SiteHeader() {
       </Link>
       <nav className="navlinks" aria-label="Navegação principal">
         <a href="#biblioteca">Base aberta</a>
+        <Link href="/conteudos">Conteúdos</Link>
         <Link href="/estudos">Missões</Link>
         <Link href="/labs">Labs</Link>
         <a href="#pratica">Como participamos</a>

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "../../lib/firebase-admin";
 import { getLabById, labSimulation } from "../../features/labs/catalog";
 import { validatesLabChallenge } from "../../features/labs/lab-challenge";
+import { contentTags } from "../../features/content/content-model";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ const publicFields = [
   "showActivity",
 ];
 const missionIds = new Set(["caso", "sonda", "matriz"]);
+const contentTagSet = new Set<string>(contentTags);
 const text = (value: unknown, max: number) =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
 const array = (value: unknown, max: number) =>
@@ -92,6 +94,22 @@ export async function POST(request: Request) {
       await db
         .collection("interestRequests")
         .add({ email, source: "site", createdAt: FieldValue.serverTimestamp() });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "newsletter.subscribe") {
+      const email = text(payload.email, 254).toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(email)) return error("Informe um e-mail válido.");
+      await db.collection("newsletterSubscribers").doc(email).set(
+        {
+          email,
+          status: "pending-confirmation",
+          source: "newsletter-page",
+          updatedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
       return NextResponse.json({ ok: true });
     }
 
@@ -145,6 +163,86 @@ export async function POST(request: Request) {
         transaction.set(profileRef, profile);
         transaction.set(db.collection("memberProfiles").doc(uid), {
           ...publicProfile(uid, profile),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "content.discussion.create") {
+      const title = text(payload.title, 120);
+      const excerpt = text(payload.content, 1200);
+      const tags = array(payload.tags, 5).filter((tag) => contentTagSet.has(tag));
+      if (title.length < 12 || excerpt.length < 20)
+        return error("Escreva um título e um contexto com ao menos 20 caracteres.");
+      if (/https?:\/\//i.test(`${title} ${excerpt}`))
+        return error("Links não são permitidos em novas discussões por enquanto.");
+      const postRef = db.collection("contentPosts").doc();
+      await db.runTransaction(async (transaction) => {
+        const profile = await transaction.get(profileRef);
+        if (!profile.exists) throw new Error("Perfil não encontrado.");
+        const latest = profile.data()?.lastDiscussionAt;
+        if (latest?.toMillis && Date.now() - latest.toMillis() < 5 * 60 * 1000)
+          throw new Error("Aguarde alguns minutos antes de abrir outra discussão.");
+        const handle = text(profile.data()?.handle, 24);
+        const slugBase = title
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "")
+          .slice(0, 72);
+        transaction.create(postRef, {
+          kind: "discussion",
+          title,
+          slug: `${slugBase || "discussao"}-${postRef.id.slice(0, 6)}`,
+          excerpt,
+          body: excerpt,
+          tags,
+          authorId: uid,
+          authorName: text(profile.data()?.displayName, 60) || handle || "Membro",
+          status: "published",
+          visibility: "members",
+          reactionCount: 0,
+          commentCount: 0,
+          publishedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        transaction.update(profileRef, {
+          lastDiscussionAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+      return NextResponse.json({ ok: true, id: postRef.id });
+    }
+
+    if (action === "content.comment.create") {
+      const postId = text(payload.postId, 128);
+      const body = text(payload.body, 800);
+      if (!postId || body.length < 8)
+        return error("Escreva uma resposta com ao menos 8 caracteres.");
+      if (/https?:\/\//i.test(body))
+        return error("Links não são permitidos em respostas por enquanto.");
+      const postRef = db.collection("contentPosts").doc(postId);
+      const commentRef = db.collection("contentComments").doc();
+      await db.runTransaction(async (transaction) => {
+        const [post, profile] = await Promise.all([
+          transaction.get(postRef),
+          transaction.get(profileRef),
+        ]);
+        if (!post.exists || post.data()?.status !== "published")
+          throw new Error("Discussão não encontrada.");
+        if (!profile.exists) throw new Error("Perfil não encontrado.");
+        transaction.create(commentRef, {
+          postId,
+          authorId: uid,
+          authorName: text(profile.data()?.displayName, 60) || "Membro",
+          body,
+          status: "published",
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        transaction.update(postRef, {
+          commentCount: FieldValue.increment(1),
           updatedAt: FieldValue.serverTimestamp(),
         });
       });

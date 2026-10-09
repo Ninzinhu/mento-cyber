@@ -20,5 +20,9 @@ service cloud.firestore {
     match /labProgress/{progressId} { allow read: if owner(resource.data.uid); allow write: if false; }
     match /labEvidence/{evidenceId} { allow read: if owner(resource.data.uid) || moderator(); allow write: if false; }
     match /labReviews/{reviewId} { allow read, write: if false; }
+    match /contentPosts/{postId} { allow read: if resource.data.status == 'published'; allow write: if false; }
+    match /contentComments/{commentId} { allow read: if resource.data.status == 'published'; allow write: if false; }
+    match /contentReactions/{reactionId} { allow read: if signedIn(); allow write: if false; }
+    match /newsletterSubscribers/{subscriberId} { allow read, write: if false; }
   }
 }
