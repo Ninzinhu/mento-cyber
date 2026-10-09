@@ -34,6 +34,7 @@ export type ContentPost = {
   authorId?: string;
   sourceName?: string;
   sourceUrl?: string;
+  imageUrl?: string;
   publishedAt: string;
   readingMinutes?: number;
   reactionCount?: number;
@@ -71,7 +72,7 @@ export const starterPosts: ContentPost[] = [
 ];
 
 export function contentLabel(kind: ContentKind) {
-  return kind === "article" ? "Artigo" : kind === "radar" ? "Radar" : "Discussão";
+  return kind === "article" ? "Artigo" : kind === "radar" ? "Notícia" : "Discussão";
 }
 
 export function formatContentDate(value: string) {

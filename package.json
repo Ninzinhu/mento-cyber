@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "emulators": "firebase emulators:start --only auth,firestore",
+    "news:sync": "node scripts/run-news-cron.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

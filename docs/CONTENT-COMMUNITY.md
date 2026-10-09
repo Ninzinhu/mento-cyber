@@ -4,7 +4,7 @@
 
 - **Artigo**: conteúdo editorial perene, criado pela equipe ou por autor aprovado.
 - **Discussão**: conversa técnica criada por um membro autenticado.
-- **Radar**: notícia importada como metadado de uma fonte externa; o MentoCyber
+- **Notícia**: item importado como metadado de uma fonte externa; o MentoCyber
   guarda título, excerto curto, tags e URL original — não republica a matéria.
 - **Newsletter**: inscrição com status de confirmação antes de qualquer envio.
 
@@ -15,7 +15,14 @@ possui permissão de gravar coleções do conteúdo diretamente. Discussões tê
 limite de tamanho, bloqueio temporário de cinco minutos entre novas publicações
 e não aceitam links enquanto não houver fluxo de moderação.
 
-## Radar automatizado
+## Notícias automatizadas
+
+### Sincronização manual
+
+Com o Next.js e os emuladores ativos, execute `npm run news:sync`. O comando
+chama a sincronização local em `http://localhost:3000/api/cron/news`. Para disparar a
+instância publicada pelo PowerShell, informe a URL e o segredo antes de chamar
+o script: `$env:NEWS_CRON_URL="https://seu-dominio/api/cron/news"; $env:CRON_SECRET="seu-segredo"; npm run news:sync`.
 
 `/api/cron/news` agrega feeds RSS/Atom públicos, sanitiza HTML, limita o tamanho
 do excerto e deduplica cada item pelo hash da URL de origem. As fontes iniciais

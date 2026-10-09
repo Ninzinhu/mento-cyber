@@ -34,7 +34,13 @@ const feeds = [
   },
 ] as const;
 
-type FeedItem = { title: string; url: string; excerpt: string; publishedAt: string };
+type FeedItem = {
+  title: string;
+  url: string;
+  excerpt: string;
+  imageUrl?: string;
+  publishedAt: string;
+};
 
 function decode(value: string) {
   return value
@@ -45,8 +51,28 @@ function decode(value: string) {
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function urlAttribute(block: string, expression: RegExp) {
+  const value = block.match(expression)?.[1] || "";
+  try {
+    const url = new URL(decode(value));
+    return url.protocol === "https:" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function imageFrom(block: string) {
+  return (
+    urlAttribute(
+      block,
+      /<media:(?:content|thumbnail)[^>]+url=["']([^"']+)["'][^>]*>/i,
+    ) || urlAttribute(block, /<enclosure[^>]+url=["']([^"']+)["'][^>]*>/i)
+  );
 }
 
 function valueOf(block: string, tag: string) {
@@ -76,6 +102,7 @@ function entries(xml: string): FeedItem[] {
         title: title.slice(0, 180),
         url,
         excerpt: excerpt.slice(0, 420),
+        imageUrl: imageFrom(block),
         publishedAt: Number.isNaN(Date.parse(date))
           ? new Date().toISOString()
           : new Date(date).toISOString(),
@@ -125,6 +152,7 @@ export async function GET(request: Request) {
                 authorName: "Radar MentoCyber",
                 sourceName: feed.name,
                 sourceUrl: item.url,
+                imageUrl: item.imageUrl || null,
                 status: "published",
                 visibility: "public",
                 publishedAt: item.publishedAt,

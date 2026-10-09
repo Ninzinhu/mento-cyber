@@ -33,7 +33,7 @@ export function NewsletterForm() {
       <ContentNav />
       <section className="newsletter-hero">
         <p className="auth-eyebrow">NEWSLETTER / SINAL DA SEMANA</p>
-        <h1>O que importa no radar, sem ruído.</h1>
+        <h1>O que importa nas notícias, sem ruído.</h1>
         <p>
           Uma seleção editorial de artigos, discussões e fontes confiáveis do
           ecossistema de segurança.

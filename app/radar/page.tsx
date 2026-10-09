@@ -1,5 +1,5 @@
-import { ContentHub } from "../components/content/content-hub";
+import { redirect } from "next/navigation";
 
 export default function RadarPage() {
-  return <ContentHub initialKind="radar" />;
+  redirect("/noticias");
 }
