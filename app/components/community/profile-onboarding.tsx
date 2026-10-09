@@ -14,6 +14,11 @@ export function ProfileOnboarding({ profile }: { profile: CommunityProfile }) {
       href: "/perfil/configuracoes",
     },
     {
+      label: "Adicionar contexto de carreira",
+      done: Boolean(profile.career.headline.trim()),
+      href: "/perfil/configuracoes",
+    },
+    {
       label: "Iniciar uma missão",
       done:
         profile.activeMissionIds.length > 0 || profile.completedMissionIds.length > 0,
@@ -31,7 +36,9 @@ export function ProfileOnboarding({ profile }: { profile: CommunityProfile }) {
     <section className="profile-panel onboarding-panel">
       <div>
         <p className="auth-eyebrow">PRÓXIMOS PASSOS</p>
-        <h2>{done}/4 sinais de presença configurados</h2>
+        <h2>
+          {done}/{steps.length} sinais de presença configurados
+        </h2>
         <p>
           Uma presença útil na rede começa por contexto e prática, não por preencher
           tudo de uma vez.

@@ -14,6 +14,7 @@ import { getContentPosts } from "../../features/content/content-data";
 import type { ContentPost } from "../../features/content/content-model";
 
 const navigation = [
+  ["Comunidade", "/comunidade"],
   ["Conteúdos", "/conteudos"],
   ["Notícias", "/noticias"],
   ["Operações", "/operacoes"],

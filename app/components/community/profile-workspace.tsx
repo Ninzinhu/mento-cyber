@@ -168,6 +168,7 @@ export function ProfileWorkspace() {
           <Link href="/membros">Membros</Link>
           <Link href="/perfil/conexoes">Conexões</Link>
           <Link href="/perfil/convites">Convites</Link>
+          <Link href="/perfil/insights">Insights</Link>
           <Link href="/perfil/configuracoes">Configurações</Link>
           <button onClick={() => leaveCommunity()} type="button">
             Sair
@@ -333,6 +334,9 @@ export function ProfileWorkspace() {
             </Link>
             <Link href="/perfil/configuracoes">
               Editar presença <span>→</span>
+            </Link>
+            <Link href="/perfil/insights">
+              Ver meus insights <span>→</span>
             </Link>
           </div>
         </section>
